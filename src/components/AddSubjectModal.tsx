@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Subject, ClassSchedule, PERIODS, DAYS_OF_WEEK, TIME_SLOTS } from '@/types';
+import { Subject, ClassSchedule, PERIODS, DAYS_OF_WEEK } from '@/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -238,30 +238,20 @@ export const AddSubjectModal: React.FC<AddSubjectModalProps> = ({
                     </Select>
                   </div>
                   <div>
-                    <Label>Início</Label>
-                    <Select value={cls.startTime} onValueChange={(value) => updateClass('theoretical', index, 'startTime', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIME_SLOTS.map(time => (
-                          <SelectItem key={time} value={time}>{time}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Horário de Início</Label>
+                    <Input
+                      type="time"
+                      value={cls.startTime}
+                      onChange={(e) => updateClass('theoretical', index, 'startTime', e.target.value)}
+                    />
                   </div>
                   <div>
-                    <Label>Fim</Label>
-                    <Select value={cls.endTime} onValueChange={(value) => updateClass('theoretical', index, 'endTime', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIME_SLOTS.map(time => (
-                          <SelectItem key={time} value={time}>{time}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Horário de Término</Label>
+                    <Input
+                      type="time"
+                      value={cls.endTime}
+                      onChange={(e) => updateClass('theoretical', index, 'endTime', e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label>Local</Label>
@@ -272,11 +262,14 @@ export const AddSubjectModal: React.FC<AddSubjectModalProps> = ({
                     />
                   </div>
                   <div>
-                    <Label>Carga Horária</Label>
+                    <Label>Carga Horária (h)</Label>
                     <Input
                       type="number"
+                      min="0"
+                      step="0.5"
                       value={cls.workload}
                       onChange={(e) => updateClass('theoretical', index, 'workload', Number(e.target.value))}
+                      placeholder="Ex: 2"
                     />
                   </div>
                   <Button
@@ -325,30 +318,20 @@ export const AddSubjectModal: React.FC<AddSubjectModalProps> = ({
                     </Select>
                   </div>
                   <div>
-                    <Label>Início</Label>
-                    <Select value={cls.startTime} onValueChange={(value) => updateClass('practical', index, 'startTime', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIME_SLOTS.map(time => (
-                          <SelectItem key={time} value={time}>{time}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Horário de Início</Label>
+                    <Input
+                      type="time"
+                      value={cls.startTime}
+                      onChange={(e) => updateClass('practical', index, 'startTime', e.target.value)}
+                    />
                   </div>
                   <div>
-                    <Label>Fim</Label>
-                    <Select value={cls.endTime} onValueChange={(value) => updateClass('practical', index, 'endTime', value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIME_SLOTS.map(time => (
-                          <SelectItem key={time} value={time}>{time}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Horário de Término</Label>
+                    <Input
+                      type="time"
+                      value={cls.endTime}
+                      onChange={(e) => updateClass('practical', index, 'endTime', e.target.value)}
+                    />
                   </div>
                   <div>
                     <Label>Local</Label>
@@ -359,11 +342,14 @@ export const AddSubjectModal: React.FC<AddSubjectModalProps> = ({
                     />
                   </div>
                   <div>
-                    <Label>Carga Horária</Label>
+                    <Label>Carga Horária (h)</Label>
                     <Input
                       type="number"
+                      min="0"
+                      step="0.5"
                       value={cls.workload}
                       onChange={(e) => updateClass('practical', index, 'workload', Number(e.target.value))}
+                      placeholder="Ex: 3"
                     />
                   </div>
                   <Button
