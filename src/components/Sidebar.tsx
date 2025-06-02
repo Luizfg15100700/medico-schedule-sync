@@ -13,7 +13,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-interface SidebarProps {}
+interface SidebarProps {
+  onMenuClick?: (menuId: string) => void;
+}
 
 const menuItems = [
   { icon: Calendar, label: 'Grade Horária', id: 'schedule', active: true },
@@ -26,8 +28,32 @@ const menuItems = [
   { icon: Settings, label: 'Configurações', id: 'settings' },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = () => {
+export const Sidebar: React.FC<SidebarProps> = ({ onMenuClick }) => {
   const [activeItem, setActiveItem] = useState('schedule');
+
+  const handleItemClick = (item: typeof menuItems[0]) => {
+    setActiveItem(item.id);
+    onMenuClick?.(item.id);
+    
+    // Simple navigation logic for now
+    if (item.id === 'subjects') {
+      // Focus on subjects tab
+      const tabsTrigger = document.querySelector('[value="subjects"]') as HTMLElement;
+      tabsTrigger?.click();
+    } else if (item.id === 'reports') {
+      // Focus on reports tab
+      const tabsTrigger = document.querySelector('[value="reports"]') as HTMLElement;
+      tabsTrigger?.click();
+    } else if (item.id === 'schedule') {
+      // Focus on schedule tab
+      const tabsTrigger = document.querySelector('[value="schedule"]') as HTMLElement;
+      tabsTrigger?.click();
+    } else if (item.id === 'new-subject') {
+      // Trigger add subject modal
+      const addButton = document.querySelector('[data-add-subject]') as HTMLElement;
+      addButton?.click();
+    }
+  };
 
   return (
     <div className="fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 overflow-y-auto">
@@ -42,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                 ? "medical-gradient text-white" 
                 : "text-gray-700 hover:bg-gray-100"
             )}
-            onClick={() => setActiveItem(item.id)}
+            onClick={() => handleItemClick(item)}
           >
             <item.icon className="w-5 h-5" />
             {item.label}

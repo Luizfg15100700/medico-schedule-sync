@@ -1,8 +1,11 @@
 
 import { useState, useCallback } from 'react';
 import { Subject, ClassSchedule, ScheduleConflict } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 export const useSubjects = () => {
+  const { toast } = useToast();
+  
   const [subjects, setSubjects] = useState<Subject[]>([
     {
       id: '1',
@@ -78,21 +81,62 @@ export const useSubjects = () => {
     const newSubject: Subject = {
       ...subject,
       id: Date.now().toString(),
-      color: `#${Math.floor(Math.random()*16777215).toString(16)}`
+      color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+      theoreticalClasses: subject.theoreticalClasses.map((cls, index) => ({
+        ...cls,
+        id: `${Date.now()}-t-${index}`,
+        subjectId: Date.now().toString()
+      })),
+      practicalClasses: subject.practicalClasses.map((cls, index) => ({
+        ...cls,
+        id: `${Date.now()}-p-${index}`,
+        subjectId: Date.now().toString()
+      }))
     };
     setSubjects(prev => [...prev, newSubject]);
-  }, []);
+    toast({
+      title: "Disciplina adicionada",
+      description: `${subject.name} foi adicionada com sucesso.`,
+    });
+  }, [toast]);
 
-  const updateSubject = useCallback((id: string, updates: Partial<Subject>) => {
-    setSubjects(prev => prev.map(subject => 
-      subject.id === id ? { ...subject, ...updates } : subject
-    ));
-  }, []);
+  const updateSubject = useCallback((id: string, updates: Partial<Omit<Subject, 'id'>>) => {
+    setSubjects(prev => prev.map(subject => {
+      if (subject.id === id) {
+        const updated = { ...subject, ...updates };
+        if (updates.theoreticalClasses) {
+          updated.theoreticalClasses = updates.theoreticalClasses.map((cls, index) => ({
+            ...cls,
+            id: cls.id || `${id}-t-${index}`,
+            subjectId: id
+          }));
+        }
+        if (updates.practicalClasses) {
+          updated.practicalClasses = updates.practicalClasses.map((cls, index) => ({
+            ...cls,
+            id: cls.id || `${id}-p-${index}`,
+            subjectId: id
+          }));
+        }
+        return updated;
+      }
+      return subject;
+    }));
+    toast({
+      title: "Disciplina atualizada",
+      description: "As alterações foram salvas com sucesso.",
+    });
+  }, [toast]);
 
   const deleteSubject = useCallback((id: string) => {
+    const subject = subjects.find(s => s.id === id);
     setSubjects(prev => prev.filter(subject => subject.id !== id));
     setSelectedSubjects(prev => prev.filter(subjectId => subjectId !== id));
-  }, []);
+    toast({
+      title: "Disciplina removida",
+      description: `${subject?.name} foi removida com sucesso.`,
+    });
+  }, [subjects, toast]);
 
   const detectConflicts = useCallback((): ScheduleConflict[] => {
     const conflicts: ScheduleConflict[] = [];
