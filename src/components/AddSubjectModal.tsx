@@ -12,7 +12,15 @@ import { Plus, Trash2 } from 'lucide-react';
 interface AddSubjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (subject: Omit<Subject, 'id'>) => void;
+  onSave: (subject: {
+    name: string;
+    period: Subject['period'];
+    professor: string;
+    location: string;
+    totalWorkload: number;
+    theoreticalClasses: Omit<ClassSchedule, 'id' | 'subjectId'>[];
+    practicalClasses: Omit<ClassSchedule, 'id' | 'subjectId'>[];
+  }) => void;
   subject?: Subject;
 }
 
