@@ -4,8 +4,10 @@ import { Layout } from '@/components/Layout';
 import { ScheduleGrid } from '@/components/ScheduleGrid';
 import { SubjectCard } from '@/components/SubjectCard';
 import { ConflictAlert } from '@/components/ConflictAlert';
+import { ConflictAnalysis } from '@/components/ConflictAnalysis';
 import { WorkloadSummary } from '@/components/WorkloadSummary';
 import { AddSubjectModal } from '@/components/AddSubjectModal';
+import { ScheduleBuilder } from '@/components/ScheduleBuilder';
 import { FilterModal, FilterOptions } from '@/components/FilterModal';
 import { useSubjects } from '@/hooks/useSubjects';
 import { useFilters } from '@/hooks/useFilters';
@@ -15,8 +17,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Plus, Filter, Download, ChevronDown } from 'lucide-react';
 import { Subject } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
+  const { toast } = useToast();
   const {
     subjects,
     selectedSubjects,
@@ -33,10 +37,58 @@ const Index = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | undefined>();
+  const [activeView, setActiveView] = useState('schedule');
 
   const selectedSubjectsList = filteredSubjects.filter(s => selectedSubjects.includes(s.id));
 
-  const handleAddSubject = (subject: Omit<Subject, 'id'>) => {
+  const handleMenuClick = (menuId: string) => {
+    console.log('Menu clicked:', menuId);
+    
+    switch (menuId) {
+      case 'schedule':
+        setActiveView('schedule');
+        break;
+      case 'create-schedule':
+        setActiveView('create-schedule');
+        break;
+      case 'subjects':
+        setActiveView('subjects');
+        break;
+      case 'new-subject':
+        openAddModal();
+        break;
+      case 'workload':
+        setActiveView('workload');
+        break;
+      case 'conflicts':
+        setActiveView('conflicts');
+        break;
+      case 'reports':
+        setActiveView('reports');
+        break;
+      case 'export':
+        handleExportPDF();
+        break;
+      case 'settings':
+        toast({
+          title: "Configurações",
+          description: "Funcionalidade em desenvolvimento",
+        });
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleAddSubject = (subject: {
+    name: string;
+    period: Subject['period'];
+    professor: string;
+    location: string;
+    totalWorkload: number;
+    theoreticalClasses: any[];
+    practicalClasses: any[];
+  }) => {
     addSubject(subject);
     setIsAddModalOpen(false);
   };
@@ -46,7 +98,7 @@ const Index = () => {
     setIsAddModalOpen(true);
   };
 
-  const handleUpdateSubject = (subjectData: Omit<Subject, 'id'>) => {
+  const handleUpdateSubject = (subjectData: any) => {
     if (editingSubject) {
       updateSubject(editingSubject.id, subjectData);
       setEditingSubject(undefined);
@@ -66,10 +118,30 @@ const Index = () => {
 
   const handleExportPDF = () => {
     exportToPDF(subjects, selectedSubjects);
+    toast({
+      title: "Exportação realizada",
+      description: "Grade exportada como HTML com sucesso!",
+    });
   };
 
   const handleExportCSV = () => {
     exportToCSV(subjects, selectedSubjects);
+    toast({
+      title: "Exportação realizada",
+      description: "Grade exportada como CSV com sucesso!",
+    });
+  };
+
+  const handleCreateSchedule = (schedule: {
+    name: string;
+    periods: string[];
+    selectedSubjects: string[];
+  }) => {
+    console.log('Creating schedule:', schedule);
+    toast({
+      title: "Grade criada",
+      description: `Grade "${schedule.name}" criada com ${schedule.selectedSubjects.length} disciplinas.`,
+    });
   };
 
   const openAddModal = () => {
@@ -77,8 +149,105 @@ const Index = () => {
     setIsAddModalOpen(true);
   };
 
+  const renderContent = () => {
+    switch (activeView) {
+      case 'create-schedule':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Criar Grade de Horários</h2>
+            </div>
+            <ScheduleBuilder 
+              subjects={subjects} 
+              onCreateSchedule={handleCreateSchedule}
+            />
+          </div>
+        );
+
+      case 'subjects':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Gerenciar Disciplinas</h2>
+              <Button className="medical-gradient" onClick={openAddModal}>
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Disciplina
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredSubjects.map(subject => (
+                <SubjectCard
+                  key={subject.id}
+                  subject={subject}
+                  isSelected={selectedSubjects.includes(subject.id)}
+                  onToggleSelection={toggleSubjectSelection}
+                  onEdit={handleEditSubject}
+                  onDelete={handleDeleteSubject}
+                />
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'workload':
+        return (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Análise de Carga Horária</h2>
+            <WorkloadSummary 
+              subjects={subjects} 
+              selectedSubjects={selectedSubjects} 
+            />
+          </div>
+        );
+
+      case 'conflicts':
+        return (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Análise de Conflitos</h2>
+            <ConflictAnalysis conflicts={conflicts} />
+          </div>
+        );
+
+      case 'reports':
+        return (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Relatórios e Estatísticas</h2>
+            <div className="text-center py-12">
+              <p className="text-gray-600 mb-6">
+                Visualize análises detalhadas do seu aproveitamento acadêmico
+              </p>
+              <div className="flex justify-center gap-4">
+                <Button className="medical-gradient" onClick={handleExportPDF}>
+                  Gerar Relatório HTML
+                </Button>
+                <Button variant="outline" onClick={handleExportCSV}>
+                  Gerar Relatório CSV
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      default: // schedule
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Grade Horária Semanal</h2>
+              <div className="text-sm text-gray-600">
+                {selectedSubjects.length} disciplinas selecionadas
+              </div>
+            </div>
+            <ScheduleGrid 
+              subjects={selectedSubjectsList} 
+              conflicts={conflicts} 
+            />
+          </div>
+        );
+    }
+  };
+
   return (
-    <Layout>
+    <Layout onMenuClick={handleMenuClick}>
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -119,81 +288,17 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Workload Summary */}
+        {/* Workload Summary - always visible */}
         <WorkloadSummary 
           subjects={subjects} 
           selectedSubjects={selectedSubjects} 
         />
 
-        {/* Conflict Alerts */}
+        {/* Conflict Alerts - always visible */}
         <ConflictAlert conflicts={conflicts} />
 
         {/* Main Content */}
-        <Tabs defaultValue="schedule" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="schedule">Grade Horária</TabsTrigger>
-            <TabsTrigger value="subjects">Disciplinas</TabsTrigger>
-            <TabsTrigger value="reports">Relatórios</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="schedule" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">
-                Grade Horária Semanal
-              </h2>
-              <div className="text-sm text-gray-600">
-                {selectedSubjects.length} disciplinas selecionadas
-              </div>
-            </div>
-            <ScheduleGrid 
-              subjects={selectedSubjectsList} 
-              conflicts={conflicts} 
-            />
-          </TabsContent>
-
-          <TabsContent value="subjects" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">
-                Gerenciar Disciplinas
-              </h2>
-              <Button className="medical-gradient" onClick={openAddModal}>
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Disciplina
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredSubjects.map(subject => (
-                <SubjectCard
-                  key={subject.id}
-                  subject={subject}
-                  isSelected={selectedSubjects.includes(subject.id)}
-                  onToggleSelection={toggleSubjectSelection}
-                  onEdit={handleEditSubject}
-                  onDelete={handleDeleteSubject}
-                />
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="reports" className="space-y-4">
-            <div className="text-center py-12">
-              <h2 className="text-xl font-semibold mb-4">
-                Relatórios e Estatísticas
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Visualize análises detalhadas do seu aproveitamento acadêmico
-              </p>
-              <div className="flex justify-center gap-4">
-                <Button className="medical-gradient" onClick={handleExportPDF}>
-                  Gerar Relatório HTML
-                </Button>
-                <Button variant="outline" onClick={handleExportCSV}>
-                  Gerar Relatório CSV
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+        {renderContent()}
 
         {/* Modals */}
         <AddSubjectModal

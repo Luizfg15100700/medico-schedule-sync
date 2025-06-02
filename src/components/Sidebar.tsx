@@ -8,7 +8,8 @@ import {
   Settings, 
   Clock,
   AlertTriangle,
-  Download
+  Download,
+  Grid3x3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -19,11 +20,12 @@ interface SidebarProps {
 
 const menuItems = [
   { icon: Calendar, label: 'Grade Horária', id: 'schedule', active: true },
+  { icon: Grid3x3, label: 'Criar Grade', id: 'create-schedule' },
   { icon: BookOpen, label: 'Disciplinas', id: 'subjects' },
   { icon: Plus, label: 'Nova Disciplina', id: 'new-subject' },
-  { icon: BarChart3, label: 'Relatórios', id: 'reports' },
   { icon: Clock, label: 'Carga Horária', id: 'workload' },
   { icon: AlertTriangle, label: 'Conflitos', id: 'conflicts' },
+  { icon: BarChart3, label: 'Relatórios', id: 'reports' },
   { icon: Download, label: 'Exportar', id: 'export' },
   { icon: Settings, label: 'Configurações', id: 'settings' },
 ];
@@ -34,25 +36,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onMenuClick }) => {
   const handleItemClick = (item: typeof menuItems[0]) => {
     setActiveItem(item.id);
     onMenuClick?.(item.id);
-    
-    // Simple navigation logic for now
-    if (item.id === 'subjects') {
-      // Focus on subjects tab
-      const tabsTrigger = document.querySelector('[value="subjects"]') as HTMLElement;
-      tabsTrigger?.click();
-    } else if (item.id === 'reports') {
-      // Focus on reports tab
-      const tabsTrigger = document.querySelector('[value="reports"]') as HTMLElement;
-      tabsTrigger?.click();
-    } else if (item.id === 'schedule') {
-      // Focus on schedule tab
-      const tabsTrigger = document.querySelector('[value="schedule"]') as HTMLElement;
-      tabsTrigger?.click();
-    } else if (item.id === 'new-subject') {
-      // Trigger add subject modal
-      const addButton = document.querySelector('[data-add-subject]') as HTMLElement;
-      addButton?.click();
-    }
   };
 
   return (

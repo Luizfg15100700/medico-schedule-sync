@@ -1,24 +1,21 @@
 
 import React from 'react';
-import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { Sidebar } from './Sidebar';
 
 interface LayoutProps {
   children: React.ReactNode;
+  onMenuClick?: (menuId: string) => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, onMenuClick }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 ml-64 p-6">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
-        </main>
-      </div>
+      <Sidebar onMenuClick={onMenuClick} />
+      <main className="ml-64 pt-16 p-6">
+        {children}
+      </main>
     </div>
   );
 };
