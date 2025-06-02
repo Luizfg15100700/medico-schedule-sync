@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Subject, PERIODS } from '@/types';
+import { Subject, PERIODS, DAYS_OF_WEEK } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
