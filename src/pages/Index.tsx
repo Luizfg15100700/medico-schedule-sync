@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { ScheduleGrid } from '@/components/ScheduleGrid';
@@ -8,8 +7,10 @@ import { ConflictAnalysis } from '@/components/ConflictAnalysis';
 import { WorkloadSummary } from '@/components/WorkloadSummary';
 import { AddSubjectModal } from '@/components/AddSubjectModal';
 import { ScheduleBuilder } from '@/components/ScheduleBuilder';
+import { ClassSelector } from '@/components/ClassSelector';
 import { FilterModal, FilterOptions } from '@/components/FilterModal';
 import { useSubjects } from '@/hooks/useSubjects';
+import { useClasses } from '@/hooks/useClasses';
 import { useFilters } from '@/hooks/useFilters';
 import { exportToPDF, exportToCSV } from '@/utils/exportUtils';
 import { Button } from '@/components/ui/button';
@@ -25,13 +26,25 @@ const Index = () => {
     subjects,
     selectedSubjects,
     detectConflicts,
+    detectConflictsForClasses,
     toggleSubjectSelection,
     addSubject,
     updateSubject,
     deleteSubject
   } = useSubjects();
 
-  const conflicts = detectConflicts();
+  const {
+    classes,
+    selectedClass,
+    setSelectedClass,
+    addSubjectToClass,
+    removeSubjectFromClass,
+    copyScheduleBetweenClasses
+  } = useClasses();
+
+  const currentClass = classes.find(cls => cls.id === selectedClass);
+  const currentClassSubjects = currentClass ? currentClass.subjects : [];
+  const conflicts = detectConflictsForClasses(currentClassSubjects);
   const { filters, setFilters, filteredSubjects } = useFilters(subjects, conflicts);
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -39,7 +52,7 @@ const Index = () => {
   const [editingSubject, setEditingSubject] = useState<Subject | undefined>();
   const [activeView, setActiveView] = useState('schedule');
 
-  const selectedSubjectsList = filteredSubjects.filter(s => selectedSubjects.includes(s.id));
+  const selectedSubjectsList = filteredSubjects.filter(s => currentClassSubjects.includes(s.id));
 
   const handleMenuClick = (menuId: string) => {
     console.log('Menu clicked:', menuId);
@@ -117,7 +130,7 @@ const Index = () => {
   };
 
   const handleExportPDF = () => {
-    exportToPDF(subjects, selectedSubjects);
+    exportToPDF(subjects, currentClassSubjects);
     toast({
       title: "Exportação realizada",
       description: "Grade exportada como HTML com sucesso!",
@@ -125,7 +138,7 @@ const Index = () => {
   };
 
   const handleExportCSV = () => {
-    exportToCSV(subjects, selectedSubjects);
+    exportToCSV(subjects, currentClassSubjects);
     toast({
       title: "Exportação realizada",
       description: "Grade exportada como CSV com sucesso!",
@@ -147,6 +160,14 @@ const Index = () => {
   const openAddModal = () => {
     setEditingSubject(undefined);
     setIsAddModalOpen(true);
+  };
+
+  const handleToggleSubjectInClass = (subjectId: string) => {
+    if (currentClassSubjects.includes(subjectId)) {
+      removeSubjectFromClass(selectedClass, subjectId);
+    } else {
+      addSubjectToClass(selectedClass, subjectId);
+    }
   };
 
   const renderContent = () => {
@@ -179,8 +200,8 @@ const Index = () => {
                 <SubjectCard
                   key={subject.id}
                   subject={subject}
-                  isSelected={selectedSubjects.includes(subject.id)}
-                  onToggleSelection={toggleSubjectSelection}
+                  isSelected={currentClassSubjects.includes(subject.id)}
+                  onToggleSelection={handleToggleSubjectInClass}
                   onEdit={handleEditSubject}
                   onDelete={handleDeleteSubject}
                 />
@@ -195,7 +216,7 @@ const Index = () => {
             <h2 className="text-xl font-semibold">Análise de Carga Horária</h2>
             <WorkloadSummary 
               subjects={subjects} 
-              selectedSubjects={selectedSubjects} 
+              selectedSubjects={currentClassSubjects} 
             />
           </div>
         );
@@ -234,7 +255,7 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Grade Horária Semanal</h2>
               <div className="text-sm text-gray-600">
-                {selectedSubjects.length} disciplinas selecionadas
+                {currentClass?.name} - {currentClassSubjects.length} disciplinas selecionadas
               </div>
             </div>
             <ScheduleGrid 
@@ -256,7 +277,7 @@ const Index = () => {
               Sistema de Grades Horárias
             </h1>
             <p className="text-gray-600 mt-1">
-              Gerencie suas disciplinas e horários do curso de Medicina
+              Gerencie suas disciplinas e horários do curso de Medicina por turmas
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -288,10 +309,18 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Class Selector */}
+        <ClassSelector
+          classes={classes}
+          selectedClass={selectedClass}
+          onClassChange={setSelectedClass}
+          onCopySchedule={copyScheduleBetweenClasses}
+        />
+
         {/* Workload Summary - always visible */}
         <WorkloadSummary 
           subjects={subjects} 
-          selectedSubjects={selectedSubjects} 
+          selectedSubjects={currentClassSubjects} 
         />
 
         {/* Conflict Alerts - always visible */}
