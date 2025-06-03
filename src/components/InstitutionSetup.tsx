@@ -9,8 +9,7 @@ import { Building2, Mail, Phone, MapPin } from 'lucide-react';
 import { useInstitution } from '@/hooks/useInstitution';
 
 export const InstitutionSetup: React.FC = () => {
-  const { createInstitution } = useInstitution();
-  const [loading, setLoading] = useState(false);
+  const { createInstitution, loading } = useInstitution();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -24,13 +23,17 @@ export const InstitutionSetup: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      await createInstitution(formData);
-    } finally {
-      setLoading(false);
+    
+    if (!formData.name.trim() || !formData.email.trim()) {
+      return;
     }
+
+    console.log('Enviando formulário:', formData);
+    await createInstitution(formData);
+  };
+
+  const updateFormData = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -55,7 +58,7 @@ export const InstitutionSetup: React.FC = () => {
                     id="name"
                     placeholder="Ex: Universidade Federal de Medicina"
                     value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => updateFormData('name', e.target.value)}
                     required
                   />
                 </div>
@@ -70,7 +73,7 @@ export const InstitutionSetup: React.FC = () => {
                       placeholder="contato@instituicao.edu.br"
                       className="pl-10"
                       value={formData.email}
-                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={(e) => updateFormData('email', e.target.value)}
                       required
                     />
                   </div>
@@ -85,7 +88,7 @@ export const InstitutionSetup: React.FC = () => {
                       placeholder="(11) 99999-9999"
                       className="pl-10"
                       value={formData.phone}
-                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                      onChange={(e) => updateFormData('phone', e.target.value)}
                     />
                   </div>
                 </div>
@@ -94,7 +97,7 @@ export const InstitutionSetup: React.FC = () => {
                   <Label htmlFor="institution_type">Tipo de Instituição</Label>
                   <Select
                     value={formData.institution_type}
-                    onValueChange={(value: any) => setFormData(prev => ({ ...prev, institution_type: value }))}
+                    onValueChange={(value: any) => updateFormData('institution_type', value)}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -117,7 +120,7 @@ export const InstitutionSetup: React.FC = () => {
                       placeholder="Rua, número, bairro"
                       className="pl-10"
                       value={formData.address}
-                      onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                      onChange={(e) => updateFormData('address', e.target.value)}
                     />
                   </div>
                 </div>
@@ -128,7 +131,7 @@ export const InstitutionSetup: React.FC = () => {
                     id="city"
                     placeholder="São Paulo"
                     value={formData.city}
-                    onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                    onChange={(e) => updateFormData('city', e.target.value)}
                   />
                 </div>
 
@@ -138,7 +141,7 @@ export const InstitutionSetup: React.FC = () => {
                     id="state"
                     placeholder="SP"
                     value={formData.state}
-                    onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value }))}
+                    onChange={(e) => updateFormData('state', e.target.value)}
                   />
                 </div>
 
@@ -148,7 +151,7 @@ export const InstitutionSetup: React.FC = () => {
                     id="postal_code"
                     placeholder="01234-567"
                     value={formData.postal_code}
-                    onChange={(e) => setFormData(prev => ({ ...prev, postal_code: e.target.value }))}
+                    onChange={(e) => updateFormData('postal_code', e.target.value)}
                   />
                 </div>
               </div>
@@ -156,7 +159,7 @@ export const InstitutionSetup: React.FC = () => {
               <Button 
                 type="submit" 
                 className="w-full medical-gradient"
-                disabled={loading}
+                disabled={loading || !formData.name.trim() || !formData.email.trim()}
               >
                 {loading ? 'Criando...' : 'Criar Instituição'}
               </Button>

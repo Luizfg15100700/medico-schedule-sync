@@ -35,16 +35,23 @@ export function useInstitution() {
     if (user) {
       fetchUserInstitution();
     } else {
+      setCurrentInstitution(null);
+      setUserRole(null);
       setLoading(false);
     }
   }, [user]);
 
   const fetchUserInstitution = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     try {
-      // Buscar a relação do usuário com instituições
-      const { data: institutionUser } = await supabase
+      console.log('Buscando instituição do usuário:', user.id);
+      
+      // Buscar a relação do usuário com instituições usando join
+      const { data: institutionUser, error } = await supabase
         .from('institution_users')
         .select(`
           *,
@@ -54,50 +61,98 @@ export function useInstitution() {
         .eq('is_approved', true)
         .maybeSingle();
 
+      if (error) {
+        console.error('Erro ao buscar instituição:', error);
+        return;
+      }
+
+      console.log('Dados retornados:', institutionUser);
+
       if (institutionUser && institutionUser.institutions) {
-        // Type cast the institution data to ensure TypeScript compatibility
-        const institution = institutionUser.institutions as Institution;
-        setCurrentInstitution(institution);
+        // Type cast and validate the institution data
+        const institution = institutionUser.institutions as any;
+        
+        // Ensure institution_type is properly typed
+        const typedInstitution: Institution = {
+          ...institution,
+          institution_type: institution.institution_type as Institution['institution_type']
+        };
+        
+        setCurrentInstitution(typedInstitution);
         setUserRole(institutionUser.role);
+        console.log('Instituição carregada:', typedInstitution);
+      } else {
+        console.log('Nenhuma instituição encontrada para o usuário');
+        setCurrentInstitution(null);
+        setUserRole(null);
       }
     } catch (error) {
-      console.error('Erro ao buscar instituição:', error);
+      console.error('Erro inesperado ao buscar instituição:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const createInstitution = async (institutionData: Omit<Institution, 'id'>) => {
-    if (!user) return { error: 'Usuário não autenticado' };
+    if (!user) {
+      const error = 'Usuário não autenticado';
+      toast({
+        title: "Erro",
+        description: error,
+        variant: "destructive"
+      });
+      return { data: null, error };
+    }
+
+    console.log('Criando instituição:', institutionData);
+    setLoading(true);
 
     try {
-      // Criar a instituição primeiro
+      // Criar a instituição
       const { data: institution, error: institutionError } = await supabase
         .from('institutions')
         .insert(institutionData)
         .select()
         .single();
 
-      if (institutionError) throw institutionError;
+      if (institutionError) {
+        console.error('Erro ao criar instituição:', institutionError);
+        throw institutionError;
+      }
 
-      // Aguardar um momento para o trigger ser executado
-      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('Instituição criada:', institution);
+
+      // Aguardar um momento para garantir que o trigger seja executado
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Recarregar os dados da instituição
+      await fetchUserInstitution();
 
       toast({
-        title: "Instituição criada",
+        title: "Sucesso!",
         description: "Sua instituição foi criada com sucesso!",
       });
 
-      await fetchUserInstitution();
       return { data: institution, error: null };
     } catch (error: any) {
       console.error('Erro detalhado ao criar instituição:', error);
+      
+      let errorMessage = 'Erro desconhecido ao criar instituição';
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
       toast({
         title: "Erro ao criar instituição",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
+      
       return { data: null, error };
+    } finally {
+      setLoading(false);
     }
   };
 
