@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { ConflictAnalysis } from '@/components/ConflictAnalysis';
-import { ConflictResult } from '@/types';
+import { ScheduleConflict } from '@/types';
 
 interface ConflictsInterfaceProps {
-  conflicts: ConflictResult[];
+  conflicts: ScheduleConflict[];
 }
 
 export const ConflictsInterface: React.FC<ConflictsInterfaceProps> = ({

@@ -1,13 +1,12 @@
 
 import React from 'react';
 import { ScheduleGrid } from '@/components/ScheduleGrid';
-import { Subject } from '@/types';
-import { ConflictResult } from '@/types';
+import { Subject, ScheduleConflict } from '@/types';
 
 interface ScheduleInterfaceProps {
   subjects: Subject[];
   selectedSubjects: string[];
-  conflicts: ConflictResult[];
+  conflicts: ScheduleConflict[];
   currentClassName?: string;
 }
 
