@@ -5,20 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { GraduationCap, Mail, Lock, User } from 'lucide-react';
+import { GraduationCap, Mail, Lock } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export const Auth: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
-    fullName: '',
     email: '',
-    password: '',
-    confirmPassword: ''
+    password: ''
   });
   const [loading, setLoading] = useState(false);
   
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,34 +28,11 @@ export const Auth: React.FC = () => {
     e.preventDefault();
     setLoading(true);
 
-    if (!isLogin && formData.password !== formData.confirmPassword) {
-      setLoading(false);
-      return;
-    }
-
     try {
-      if (isLogin) {
-        await signIn(formData.email, formData.password);
-      } else {
-        await signUp(formData.email, formData.password, formData.fullName);
-      }
+      await signIn(formData.email, formData.password);
     } finally {
       setLoading(false);
     }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      fullName: '',
-      email: '',
-      password: '',
-      confirmPassword: ''
-    });
-  };
-
-  const toggleMode = () => {
-    setIsLogin(!isLogin);
-    resetForm();
   };
 
   return (
@@ -76,30 +50,10 @@ export const Auth: React.FC = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">
-              {isLogin ? 'Fazer Login' : 'Criar Conta'}
-            </CardTitle>
+            <CardTitle className="text-center">Fazer Login</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <div>
-                  <Label htmlFor="fullName">Nome Completo</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                    <Input
-                      id="fullName"
-                      type="text"
-                      placeholder="Seu nome completo"
-                      className="pl-10"
-                      value={formData.fullName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                      required={!isLogin}
-                    />
-                  </div>
-                </div>
-              )}
-
               <div>
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
@@ -132,41 +86,14 @@ export const Auth: React.FC = () => {
                 </div>
               </div>
 
-              {!isLogin && (
-                <div>
-                  <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Confirme sua senha"
-                      className="pl-10"
-                      value={formData.confirmPassword}
-                      onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      required={!isLogin}
-                    />
-                  </div>
-                </div>
-              )}
-
               <Button 
                 type="submit" 
                 className="w-full medical-gradient"
                 disabled={loading}
               >
-                {loading ? 'Carregando...' : (isLogin ? 'Entrar' : 'Criar Conta')}
+                {loading ? 'Carregando...' : 'Entrar'}
               </Button>
             </form>
-
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-600">
-                {isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
-                <Button variant="link" onClick={toggleMode} className="ml-1 p-0 h-auto">
-                  {isLogin ? 'Criar conta' : 'Fazer login'}
-                </Button>
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>
