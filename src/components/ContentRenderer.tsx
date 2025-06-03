@@ -89,6 +89,7 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
         <WorkloadInterface
           subjects={subjects}
           selectedSubjects={currentClassSubjects}
+          classes={classes}
         />
       );
 
@@ -105,12 +106,20 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
 
     default: // schedule
       return (
-        <ScheduleInterface
-          subjects={selectedSubjectsList}
-          selectedSubjects={currentClassSubjects}
-          conflicts={conflicts}
-          currentClassName={currentClassName}
-        />
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Sistemas de Grades Horárias</h2>
+            <div className="text-sm text-gray-600">
+              {currentClassName} - {currentClassSubjects.length} disciplinas selecionadas
+            </div>
+          </div>
+          <ScheduleInterface
+            subjects={selectedSubjectsList}
+            selectedSubjects={currentClassSubjects}
+            conflicts={conflicts}
+            currentClassName={currentClassName}
+          />
+        </div>
       );
   }
 };

@@ -31,17 +31,7 @@ export const AcademicCalendar: React.FC = () => {
     isActive: false
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingPeriod) {
-      updateAcademicPeriod(editingPeriod.id, formData);
-      setEditingPeriod(null);
-    } else {
-      addAcademicPeriod(formData);
-      setIsCreating(false);
-    }
-    
+  const resetForm = () => {
     setFormData({
       name: '',
       semester: '1',
@@ -50,6 +40,23 @@ export const AcademicCalendar: React.FC = () => {
       endDate: '',
       isActive: false
     });
+    setIsCreating(false);
+    setEditingPeriod(null);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      if (editingPeriod) {
+        updateAcademicPeriod(editingPeriod.id, formData);
+      } else {
+        addAcademicPeriod(formData);
+      }
+      resetForm();
+    } catch (error) {
+      console.error('Error saving academic period:', error);
+    }
   };
 
   const handleEdit = (period: AcademicPeriod) => {
@@ -67,21 +74,29 @@ export const AcademicCalendar: React.FC = () => {
 
   const handleDelete = (periodId: string) => {
     if (confirm('Tem certeza que deseja excluir este período acadêmico?')) {
-      deleteAcademicPeriod(periodId);
+      try {
+        deleteAcademicPeriod(periodId);
+      } catch (error) {
+        console.error('Error deleting academic period:', error);
+      }
     }
   };
 
   const toggleActive = (period: AcademicPeriod) => {
-    // Desativar outros períodos
-    academicPeriods.forEach(p => {
-      if (p.id !== period.id && p.isActive) {
-        updateAcademicPeriod(p.id, { isActive: false });
-      }
-    });
-    
-    // Ativar o período selecionado
-    updateAcademicPeriod(period.id, { isActive: true });
-    setActivePeriod(period.id);
+    try {
+      // Desativar outros períodos
+      academicPeriods.forEach(p => {
+        if (p.id !== period.id && p.isActive) {
+          updateAcademicPeriod(p.id, { isActive: false });
+        }
+      });
+      
+      // Ativar o período selecionado
+      updateAcademicPeriod(period.id, { isActive: true });
+      setActivePeriod(period.id);
+    } catch (error) {
+      console.error('Error activating period:', error);
+    }
   };
 
   return (
@@ -179,18 +194,7 @@ export const AcademicCalendar: React.FC = () => {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => {
-                    setIsCreating(false);
-                    setEditingPeriod(null);
-                    setFormData({
-                      name: '',
-                      semester: '1',
-                      year: new Date().getFullYear(),
-                      startDate: '',
-                      endDate: '',
-                      isActive: false
-                    });
-                  }}
+                  onClick={resetForm}
                 >
                   Cancelar
                 </Button>

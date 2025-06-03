@@ -21,9 +21,9 @@ export const ScheduleInterface: React.FC<ScheduleInterfaceProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Grade Horária Semanal</h2>
+        <h3 className="text-lg font-medium">Grade Horária Semanal</h3>
         <div className="text-sm text-gray-600">
-          {currentClassName} - {selectedSubjects.length} disciplinas selecionadas
+          {currentClassName} - {selectedSubjects.length} disciplinas ativas
         </div>
       </div>
       <ScheduleGrid 
