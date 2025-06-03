@@ -1,12 +1,10 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { User, Lock, Mail, GraduationCap } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { GraduationCap, LogIn } from 'lucide-react';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -17,50 +15,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   isOpen,
   onClose
 }) => {
-  const { toast } = useToast();
-  const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!isLogin && formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Erro",
-        description: "As senhas não coincidem.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Simular login/cadastro
-    toast({
-      title: isLogin ? "Login realizado" : "Cadastro realizado",
-      description: isLogin 
-        ? `Bem-vindo de volta, ${formData.email}!`
-        : `Conta criada para ${formData.email}. Bem-vindo ao MedSchedule!`,
-    });
-    
+  const handleLoginRedirect = () => {
     onClose();
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: ''
-    });
-  };
-
-  const toggleMode = () => {
-    setIsLogin(!isLogin);
-    resetForm();
+    navigate('/auth');
   };
 
   return (
@@ -72,95 +31,25 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <GraduationCap className="w-6 h-6 text-white" />
             </div>
             <DialogTitle className="text-xl">
-              {isLogin ? 'Entrar' : 'Criar Conta'}
+              Acesso ao Sistema
             </DialogTitle>
           </div>
         </DialogHeader>
 
         <Card>
-          <CardContent className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <div>
-                  <Label htmlFor="name">Nome Completo</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                    <Input
-                      id="name"
-                      type="text"
-                      placeholder="Seu nome completo"
-                      className="pl-10"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      required={!isLogin}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu.email@exemplo.com"
-                    className="pl-10"
-                    value={formData.email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="password">Senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Sua senha"
-                    className="pl-10"
-                    value={formData.password}
-                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    required
-                  />
-                </div>
-              </div>
-
-              {!isLogin && (
-                <div>
-                  <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="Confirme sua senha"
-                      className="pl-10"
-                      value={formData.confirmPassword}
-                      onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      required={!isLogin}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <Button type="submit" className="w-full medical-gradient">
-                {isLogin ? 'Entrar' : 'Criar Conta'}
-              </Button>
-            </form>
-
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-600">
-                {isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
-                <Button variant="link" onClick={toggleMode} className="ml-1 p-0 h-auto">
-                  {isLogin ? 'Criar conta' : 'Fazer login'}
-                </Button>
-              </p>
-            </div>
+          <CardContent className="p-6 text-center">
+            <LogIn className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Faça login para continuar</h3>
+            <p className="text-gray-600 mb-6">
+              Você precisa estar autenticado para acessar o sistema de grades horárias.
+            </p>
+            
+            <Button 
+              onClick={handleLoginRedirect}
+              className="w-full medical-gradient"
+            >
+              Ir para Login
+            </Button>
           </CardContent>
         </Card>
       </DialogContent>
