@@ -52,9 +52,9 @@ export function useInstitution() {
         `)
         .eq('user_id', user.id)
         .eq('is_approved', true)
-        .single();
+        .maybeSingle();
 
-      if (institutionUser) {
+      if (institutionUser && institutionUser.institutions) {
         // Type cast the institution data to ensure TypeScript compatibility
         const institution = institutionUser.institutions as Institution;
         setCurrentInstitution(institution);
@@ -71,13 +71,17 @@ export function useInstitution() {
     if (!user) return { error: 'Usuário não autenticado' };
 
     try {
-      const { data, error } = await supabase
+      // Criar a instituição primeiro
+      const { data: institution, error: institutionError } = await supabase
         .from('institutions')
         .insert(institutionData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (institutionError) throw institutionError;
+
+      // Aguardar um momento para o trigger ser executado
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       toast({
         title: "Instituição criada",
@@ -85,8 +89,9 @@ export function useInstitution() {
       });
 
       await fetchUserInstitution();
-      return { data, error: null };
+      return { data: institution, error: null };
     } catch (error: any) {
+      console.error('Erro detalhado ao criar instituição:', error);
       toast({
         title: "Erro ao criar instituição",
         description: error.message,
