@@ -8,12 +8,15 @@ import { ConflictAnalysis } from '@/components/ConflictAnalysis';
 import { WorkloadSummary } from '@/components/WorkloadSummary';
 import { AddSubjectModal } from '@/components/AddSubjectModal';
 import { ScheduleBuilder } from '@/components/ScheduleBuilder';
+import { AdvancedScheduleBuilder } from '@/components/AdvancedScheduleBuilder';
+import { AcademicCalendar } from '@/components/AcademicCalendar';
 import { ClassSelector } from '@/components/ClassSelector';
 import { ClassScheduleEditor } from '@/components/ClassScheduleEditor';
 import { FilterModal, FilterOptions } from '@/components/FilterModal';
 import { useSubjects } from '@/hooks/useSubjects';
 import { useClasses } from '@/hooks/useClasses';
 import { useFilters } from '@/hooks/useFilters';
+import { useAcademicCalendar } from '@/hooks/useAcademicCalendar';
 import { exportToPDF, exportToCSV } from '@/utils/exportUtils';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -44,6 +47,8 @@ const Index = () => {
     copyScheduleBetweenClasses
   } = useClasses();
 
+  const { saveScheduleTemplate } = useAcademicCalendar();
+
   const currentClass = classes.find(cls => cls.id === selectedClass);
   const currentClassSubjects = currentClass ? currentClass.subjects : [];
   const conflicts = detectConflictsForClasses(currentClassSubjects);
@@ -67,6 +72,12 @@ const Index = () => {
         break;
       case 'create-schedule':
         setActiveView('create-schedule');
+        break;
+      case 'advanced-schedule':
+        setActiveView('advanced-schedule');
+        break;
+      case 'academic-calendar':
+        setActiveView('academic-calendar');
         break;
       case 'subjects':
         setActiveView('subjects');
@@ -172,6 +183,18 @@ const Index = () => {
     });
   };
 
+  const handleSaveAdvancedSchedule = (schedule: {
+    name: string;
+    academicPeriodId: string;
+    assignments: any[];
+  }) => {
+    saveScheduleTemplate({
+      name: schedule.name,
+      academicPeriodId: schedule.academicPeriodId,
+      subjects: schedule.assignments
+    });
+  };
+
   const openAddModal = () => {
     setEditingSubject(undefined);
     setIsAddModalOpen(true);
@@ -187,6 +210,27 @@ const Index = () => {
 
   const renderContent = () => {
     switch (activeView) {
+      case 'academic-calendar':
+        return (
+          <div className="space-y-4">
+            <AcademicCalendar />
+          </div>
+        );
+
+      case 'advanced-schedule':
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Criador Avançado de Grades</h2>
+            </div>
+            <AdvancedScheduleBuilder 
+              subjects={subjects}
+              classes={classes}
+              onSaveSchedule={handleSaveAdvancedSchedule}
+            />
+          </div>
+        );
+
       case 'create-schedule':
         return (
           <div className="space-y-4">
