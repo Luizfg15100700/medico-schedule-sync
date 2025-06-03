@@ -1,27 +1,30 @@
-
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
-import { ScheduleGrid } from '@/components/ScheduleGrid';
-import { SubjectCard } from '@/components/SubjectCard';
 import { ConflictAlert } from '@/components/ConflictAlert';
-import { ConflictAnalysis } from '@/components/ConflictAnalysis';
 import { WorkloadSummary } from '@/components/WorkloadSummary';
 import { AddSubjectModal } from '@/components/AddSubjectModal';
-import { ScheduleBuilder } from '@/components/ScheduleBuilder';
-import { AdvancedScheduleBuilder } from '@/components/AdvancedScheduleBuilder';
-import { AcademicCalendar } from '@/components/AcademicCalendar';
 import { ClassSelector } from '@/components/ClassSelector';
 import { ClassScheduleEditor } from '@/components/ClassScheduleEditor';
 import { FilterModal, FilterOptions } from '@/components/FilterModal';
+
+// Importar todas as interfaces
+import { ScheduleInterface } from '@/components/interfaces/ScheduleInterface';
+import { SubjectsInterface } from '@/components/interfaces/SubjectsInterface';
+import { WorkloadInterface } from '@/components/interfaces/WorkloadInterface';
+import { ConflictsInterface } from '@/components/interfaces/ConflictsInterface';
+import { ReportsInterface } from '@/components/interfaces/ReportsInterface';
+import { ScheduleBuilderInterface } from '@/components/interfaces/ScheduleBuilderInterface';
+import { AdvancedScheduleInterface } from '@/components/interfaces/AdvancedScheduleInterface';
+import { AcademicCalendarInterface } from '@/components/interfaces/AcademicCalendarInterface';
+
 import { useSubjects } from '@/hooks/useSubjects';
 import { useClasses } from '@/hooks/useClasses';
 import { useFilters } from '@/hooks/useFilters';
 import { useAcademicCalendar } from '@/hooks/useAcademicCalendar';
 import { exportToPDF, exportToCSV } from '@/utils/exportUtils';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Filter, Download, ChevronDown, Edit } from 'lucide-react';
+import { Plus, Filter, Download, ChevronDown } from 'lucide-react';
 import { Subject } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -211,127 +214,66 @@ const Index = () => {
   const renderContent = () => {
     switch (activeView) {
       case 'academic-calendar':
-        return (
-          <div className="space-y-4">
-            <AcademicCalendar />
-          </div>
-        );
+        return <AcademicCalendarInterface />;
 
       case 'advanced-schedule':
         return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Criador Avançado de Grades</h2>
-            </div>
-            <AdvancedScheduleBuilder 
-              subjects={subjects}
-              classes={classes}
-              onSaveSchedule={handleSaveAdvancedSchedule}
-            />
-          </div>
+          <AdvancedScheduleInterface
+            subjects={subjects}
+            classes={classes}
+            onSaveSchedule={handleSaveAdvancedSchedule}
+          />
         );
 
       case 'create-schedule':
         return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Criar Grade de Horários</h2>
-            </div>
-            <ScheduleBuilder 
-              subjects={subjects}
-              classes={classes}
-              onCreateSchedule={handleCreateSchedule}
-            />
-          </div>
+          <ScheduleBuilderInterface
+            subjects={subjects}
+            classes={classes}
+            onCreateSchedule={handleCreateSchedule}
+          />
         );
 
       case 'subjects':
         return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Gerenciar Disciplinas</h2>
-              <Button className="medical-gradient" onClick={openAddModal}>
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Disciplina
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredSubjects.map(subject => (
-                <div key={subject.id} className="relative">
-                  <SubjectCard
-                    subject={subject}
-                    isSelected={currentClassSubjects.includes(subject.id)}
-                    onToggleSelection={handleToggleSubjectInClass}
-                    onEdit={handleEditSubject}
-                    onDelete={handleDeleteSubject}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="absolute top-2 right-2"
-                    onClick={() => handleEditSchedule(subject)}
-                  >
-                    <Edit className="w-3 h-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <SubjectsInterface
+            subjects={filteredSubjects}
+            selectedSubjects={currentClassSubjects}
+            onToggleSelection={handleToggleSubjectInClass}
+            onEdit={handleEditSubject}
+            onDelete={handleDeleteSubject}
+            onEditSchedule={handleEditSchedule}
+            onAddNew={openAddModal}
+          />
         );
 
       case 'workload':
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Análise de Carga Horária</h2>
-            <WorkloadSummary 
-              subjects={subjects} 
-              selectedSubjects={currentClassSubjects} 
-            />
-          </div>
+          <WorkloadInterface
+            subjects={subjects}
+            selectedSubjects={currentClassSubjects}
+          />
         );
 
       case 'conflicts':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Análise de Conflitos</h2>
-            <ConflictAnalysis conflicts={conflicts} />
-          </div>
-        );
+        return <ConflictsInterface conflicts={conflicts} />;
 
       case 'reports':
         return (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Relatórios e Estatísticas</h2>
-            <div className="text-center py-12">
-              <p className="text-gray-600 mb-6">
-                Visualize análises detalhadas do seu aproveitamento acadêmico
-              </p>
-              <div className="flex justify-center gap-4">
-                <Button className="medical-gradient" onClick={handleExportPDF}>
-                  Gerar Relatório HTML
-                </Button>
-                <Button variant="outline" onClick={handleExportCSV}>
-                  Gerar Relatório CSV
-                </Button>
-              </div>
-            </div>
-          </div>
+          <ReportsInterface
+            onExportPDF={handleExportPDF}
+            onExportCSV={handleExportCSV}
+          />
         );
 
       default: // schedule
         return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Grade Horária Semanal</h2>
-              <div className="text-sm text-gray-600">
-                {currentClass?.name} - {currentClassSubjects.length} disciplinas selecionadas
-              </div>
-            </div>
-            <ScheduleGrid 
-              subjects={selectedSubjectsList} 
-              conflicts={conflicts} 
-            />
-          </div>
+          <ScheduleInterface
+            subjects={selectedSubjectsList}
+            selectedSubjects={currentClassSubjects}
+            conflicts={conflicts}
+            currentClassName={currentClass?.name}
+          />
         );
     }
   };
