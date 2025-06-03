@@ -77,19 +77,20 @@ export const useSubjects = () => {
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(['1', '2']);
 
   const addSubject = useCallback((subject: Omit<Subject, 'id'>) => {
+    const subjectId = Date.now().toString();
     const newSubject: Subject = {
       ...subject,
-      id: Date.now().toString(),
+      id: subjectId,
       color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
       theoreticalClasses: subject.theoreticalClasses.map((cls, index) => ({
         ...cls,
-        id: `${Date.now()}-t-${index}`,
-        subjectId: Date.now().toString()
+        id: `${subjectId}-t-${index}`,
+        subjectId: subjectId
       })),
       practicalClasses: subject.practicalClasses.map((cls, index) => ({
         ...cls,
-        id: `${Date.now()}-p-${index}`,
-        subjectId: Date.now().toString()
+        id: `${subjectId}-p-${index}`,
+        subjectId: subjectId
       }))
     };
     setSubjects(prev => [...prev, newSubject]);
@@ -97,6 +98,7 @@ export const useSubjects = () => {
       title: "Disciplina adicionada",
       description: `${subject.name} foi adicionada com sucesso.`,
     });
+    return newSubject;
   }, [toast]);
 
   const updateSubject = useCallback((id: string, updates: Partial<Omit<Subject, 'id'>>) => {

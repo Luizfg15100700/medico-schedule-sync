@@ -24,6 +24,8 @@ export const useIndexLogic = () => {
     setSelectedClass,
     addSubjectToClass,
     removeSubjectFromClass,
+    addSubjectToAllClassesInPeriod,
+    removeSubjectFromAllClassesInPeriod,
     copyScheduleBetweenClasses
   } = useClasses();
 
@@ -46,7 +48,9 @@ export const useIndexLogic = () => {
     theoreticalClasses: any[];
     practicalClasses: any[];
   }) => {
-    addSubject(subject);
+    const newSubject = addSubject(subject);
+    // Adicionar automaticamente a todas as turmas do período
+    addSubjectToAllClassesInPeriod(subject.period, newSubject.id);
     appState.closeAddModal();
   };
 
@@ -64,6 +68,11 @@ export const useIndexLogic = () => {
 
   const handleDeleteSubject = (subjectId: string) => {
     if (confirm('Tem certeza que deseja excluir esta disciplina?')) {
+      const subject = subjects.find(s => s.id === subjectId);
+      if (subject) {
+        // Remover de todas as turmas do período
+        removeSubjectFromAllClassesInPeriod(subject.period, subjectId);
+      }
       deleteSubject(subjectId);
     }
   };
@@ -81,18 +90,6 @@ export const useIndexLogic = () => {
     toast({
       title: "Exportação realizada",
       description: "Grade exportada como CSV com sucesso!",
-    });
-  };
-
-  const handleCreateSchedule = (schedule: {
-    name: string;
-    periods: string[];
-    selectedSubjects: { subjectId: string; classId: string }[];
-  }) => {
-    console.log('Creating schedule:', schedule);
-    toast({
-      title: "Grade criada",
-      description: `Grade "${schedule.name}" criada com ${schedule.selectedSubjects.length} disciplinas/turmas.`,
     });
   };
 
@@ -141,7 +138,6 @@ export const useIndexLogic = () => {
     handleDeleteSubject,
     handleExportPDF,
     handleExportCSV,
-    handleCreateSchedule,
     handleSaveAdvancedSchedule,
     handleToggleSubjectInClass,
   };

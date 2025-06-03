@@ -15,9 +15,6 @@ export const useMenuHandlers = (
       case 'schedule':
         setActiveView('schedule');
         break;
-      case 'create-schedule':
-        setActiveView('create-schedule');
-        break;
       case 'advanced-schedule':
         setActiveView('advanced-schedule');
         break;

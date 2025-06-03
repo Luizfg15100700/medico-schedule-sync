@@ -5,7 +5,6 @@ import { SubjectsInterface } from '@/components/interfaces/SubjectsInterface';
 import { WorkloadInterface } from '@/components/interfaces/WorkloadInterface';
 import { ConflictsInterface } from '@/components/interfaces/ConflictsInterface';
 import { ReportsInterface } from '@/components/interfaces/ReportsInterface';
-import { ScheduleBuilderInterface } from '@/components/interfaces/ScheduleBuilderInterface';
 import { AdvancedScheduleInterface } from '@/components/interfaces/AdvancedScheduleInterface';
 import { AcademicCalendarInterface } from '@/components/interfaces/AcademicCalendarInterface';
 import { Subject } from '@/types';
@@ -27,8 +26,11 @@ interface ContentRendererProps {
   onAddNew: () => void;
   onExportPDF: () => void;
   onExportCSV: () => void;
-  onCreateSchedule: (schedule: any) => void;
   onSaveAdvancedSchedule: (schedule: any) => void;
+  // Props para o ClassSelector
+  selectedClass: string;
+  onClassChange: (classId: string) => void;
+  onCopySchedule: (fromClassId: string, toClassId: string) => void;
 }
 
 export const ContentRenderer: React.FC<ContentRendererProps> = ({
@@ -47,8 +49,10 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
   onAddNew,
   onExportPDF,
   onExportCSV,
-  onCreateSchedule,
-  onSaveAdvancedSchedule
+  onSaveAdvancedSchedule,
+  selectedClass,
+  onClassChange,
+  onCopySchedule
 }) => {
   switch (activeView) {
     case 'academic-calendar':
@@ -63,15 +67,6 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
         />
       );
 
-    case 'create-schedule':
-      return (
-        <ScheduleBuilderInterface
-          subjects={subjects}
-          classes={classes}
-          onCreateSchedule={onCreateSchedule}
-        />
-      );
-
     case 'subjects':
       return (
         <SubjectsInterface
@@ -82,6 +77,10 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
           onDelete={onDeleteSubject}
           onEditSchedule={onEditSchedule}
           onAddNew={onAddNew}
+          classes={classes}
+          selectedClass={selectedClass}
+          onClassChange={onClassChange}
+          onCopySchedule={onCopySchedule}
         />
       );
 

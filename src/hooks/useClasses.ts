@@ -7,8 +7,8 @@ export const useClasses = () => {
   const { toast } = useToast();
   
   const [classes, setClasses] = useState<ClassGroup[]>([
-    // Inicializar com 4 turmas para cada período (1-12)
-    ...Array.from({ length: 12 }, (_, periodIndex) => 
+    // Inicializar com 4 turmas para cada período (1-8)
+    ...Array.from({ length: 8 }, (_, periodIndex) => 
       Array.from({ length: 4 }, (_, classIndex) => ({
         id: `${periodIndex + 1}-${classIndex + 1}`,
         name: `Turma ${String.fromCharCode(65 + classIndex)}`, // A, B, C, D
@@ -24,6 +24,20 @@ export const useClasses = () => {
     return classes.filter(cls => cls.period === period);
   }, [classes]);
 
+  const addSubjectToAllClassesInPeriod = useCallback((period: string, subjectId: string) => {
+    setClasses(prev => prev.map(cls => 
+      cls.period === period 
+        ? { ...cls, subjects: [...cls.subjects, subjectId] }
+        : cls
+    ));
+    
+    const periodClasses = classes.filter(cls => cls.period === period);
+    toast({
+      title: "Disciplina adicionada",
+      description: `Disciplina adicionada a todas as ${periodClasses.length} turmas do ${period}º período.`,
+    });
+  }, [classes, toast]);
+
   const addSubjectToClass = useCallback((classId: string, subjectId: string) => {
     setClasses(prev => prev.map(cls => 
       cls.id === classId 
@@ -35,6 +49,14 @@ export const useClasses = () => {
   const removeSubjectFromClass = useCallback((classId: string, subjectId: string) => {
     setClasses(prev => prev.map(cls => 
       cls.id === classId 
+        ? { ...cls, subjects: cls.subjects.filter(id => id !== subjectId) }
+        : cls
+    ));
+  }, []);
+
+  const removeSubjectFromAllClassesInPeriod = useCallback((period: string, subjectId: string) => {
+    setClasses(prev => prev.map(cls => 
+      cls.period === period 
         ? { ...cls, subjects: cls.subjects.filter(id => id !== subjectId) }
         : cls
     ));
@@ -81,6 +103,8 @@ export const useClasses = () => {
     getClassesByPeriod,
     addSubjectToClass,
     removeSubjectFromClass,
+    addSubjectToAllClassesInPeriod,
+    removeSubjectFromAllClassesInPeriod,
     copyScheduleBetweenClasses
   };
 };

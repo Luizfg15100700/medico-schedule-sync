@@ -2,13 +2,11 @@
 import React from 'react';
 import { ConflictAlert } from '@/components/ConflictAlert';
 import { WorkloadSummary } from '@/components/WorkloadSummary';
-import { ClassSelector } from '@/components/ClassSelector';
 import { PageHeader } from '@/components/PageHeader';
 import { ContentRenderer } from '@/components/ContentRenderer';
 import { Subject } from '@/types';
 import { ClassGroup } from '@/types/class';
 import { ScheduleConflict } from '@/types';
-import { FilterOptions } from '@/components/FilterModal';
 
 interface MainContentProps {
   subjects: Subject[];
@@ -30,7 +28,6 @@ interface MainContentProps {
   onEditSubject: (subject: Subject) => void;
   onDeleteSubject: (subjectId: string) => void;
   onEditSchedule: (subject: Subject) => void;
-  onCreateSchedule: (schedule: any) => void;
   onSaveAdvancedSchedule: (schedule: any) => void;
 }
 
@@ -54,7 +51,6 @@ export const MainContent: React.FC<MainContentProps> = ({
   onEditSubject,
   onDeleteSubject,
   onEditSchedule,
-  onCreateSchedule,
   onSaveAdvancedSchedule
 }) => {
   return (
@@ -66,19 +62,26 @@ export const MainContent: React.FC<MainContentProps> = ({
         onAddSubject={onAddSubject}
       />
 
-      <ClassSelector
-        classes={classes}
-        selectedClass={selectedClass}
-        onClassChange={onClassChange}
-        onCopySchedule={onCopySchedule}
-      />
+      {/* Mostrar informações da turma atual apenas se não estivermos na aba de disciplinas */}
+      {activeView !== 'subjects' && (
+        <>
+          <div className="bg-white p-4 rounded-lg border">
+            <h3 className="font-medium text-gray-900 mb-2">
+              Turma Atual: {currentClass?.name} - {currentClass?.period}º Período
+            </h3>
+            <p className="text-sm text-gray-600">
+              {currentClassSubjects.length} disciplinas ativas
+            </p>
+          </div>
 
-      <WorkloadSummary 
-        subjects={subjects} 
-        selectedSubjects={currentClassSubjects} 
-      />
+          <WorkloadSummary 
+            subjects={subjects} 
+            selectedSubjects={currentClassSubjects} 
+          />
 
-      <ConflictAlert conflicts={conflicts} />
+          <ConflictAlert conflicts={conflicts} />
+        </>
+      )}
 
       <ContentRenderer
         activeView={activeView}
@@ -96,8 +99,10 @@ export const MainContent: React.FC<MainContentProps> = ({
         onAddNew={onAddSubject}
         onExportPDF={onExportPDF}
         onExportCSV={onExportCSV}
-        onCreateSchedule={onCreateSchedule}
         onSaveAdvancedSchedule={onSaveAdvancedSchedule}
+        selectedClass={selectedClass}
+        onClassChange={onClassChange}
+        onCopySchedule={onCopySchedule}
       />
     </div>
   );

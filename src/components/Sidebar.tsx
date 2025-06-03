@@ -5,11 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   Calendar,
-  CalendarDays,
   Clock,
   BookOpen,
   Plus,
-  Users,
   AlertCircle,
   BarChart3,
   Download,
@@ -51,12 +49,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onMenuClick }) => {
       icon: Layers,
       description: 'Criar grades elaboradas',
       isNew: true
-    },
-    {
-      id: 'create-schedule',
-      label: 'Criar Grade',
-      icon: CalendarDays,
-      description: 'Montar nova grade'
     },
     {
       id: 'subjects',
@@ -155,10 +147,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onMenuClick }) => {
             <GraduationCap className="w-8 h-8 text-blue-600 mx-auto mb-2" />
             <h3 className="font-medium text-blue-900 mb-1">Sistema Atualizado</h3>
             <p className="text-xs text-blue-700 mb-3">
-              Novos recursos: Calendário Acadêmico e Criador Avançado de Grades com controle de conflitos!
+              Agora as disciplinas são automaticamente adicionadas a todas as turmas do período!
             </p>
             <Badge className="bg-blue-100 text-blue-800 text-xs">
-              v2.0
+              v2.1
             </Badge>
           </div>
         </Card>
