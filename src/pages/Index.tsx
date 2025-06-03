@@ -44,7 +44,6 @@ const Index = () => {
     handleDeleteSubject,
     handleExportPDF,
     handleExportCSV,
-    handleCreateSchedule,
     handleSaveAdvancedSchedule,
     handleToggleSubjectInClass,
   } = useIndexLogic();
@@ -73,7 +72,6 @@ const Index = () => {
         onEditSubject={openEditModal}
         onDeleteSubject={handleDeleteSubject}
         onEditSchedule={openScheduleEditor}
-        onCreateSchedule={handleCreateSchedule}
         onSaveAdvancedSchedule={handleSaveAdvancedSchedule}
       />
 
