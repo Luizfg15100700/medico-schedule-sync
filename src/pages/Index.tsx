@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { ScheduleGrid } from '@/components/ScheduleGrid';
@@ -8,6 +9,7 @@ import { WorkloadSummary } from '@/components/WorkloadSummary';
 import { AddSubjectModal } from '@/components/AddSubjectModal';
 import { ScheduleBuilder } from '@/components/ScheduleBuilder';
 import { ClassSelector } from '@/components/ClassSelector';
+import { ClassScheduleEditor } from '@/components/ClassScheduleEditor';
 import { FilterModal, FilterOptions } from '@/components/FilterModal';
 import { useSubjects } from '@/hooks/useSubjects';
 import { useClasses } from '@/hooks/useClasses';
@@ -16,7 +18,7 @@ import { exportToPDF, exportToCSV } from '@/utils/exportUtils';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Plus, Filter, Download, ChevronDown } from 'lucide-react';
+import { Plus, Filter, Download, ChevronDown, Edit } from 'lucide-react';
 import { Subject } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -49,7 +51,9 @@ const Index = () => {
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isScheduleEditorOpen, setIsScheduleEditorOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | undefined>();
+  const [editingScheduleSubject, setEditingScheduleSubject] = useState<Subject | undefined>();
   const [activeView, setActiveView] = useState('schedule');
 
   const selectedSubjectsList = filteredSubjects.filter(s => currentClassSubjects.includes(s.id));
@@ -111,12 +115,23 @@ const Index = () => {
     setIsAddModalOpen(true);
   };
 
+  const handleEditSchedule = (subject: Subject) => {
+    setEditingScheduleSubject(subject);
+    setIsScheduleEditorOpen(true);
+  };
+
   const handleUpdateSubject = (subjectData: any) => {
     if (editingSubject) {
       updateSubject(editingSubject.id, subjectData);
       setEditingSubject(undefined);
       setIsAddModalOpen(false);
     }
+  };
+
+  const handleUpdateSchedule = (updatedSubject: Subject) => {
+    updateSubject(updatedSubject.id, updatedSubject);
+    setEditingScheduleSubject(undefined);
+    setIsScheduleEditorOpen(false);
   };
 
   const handleDeleteSubject = (subjectId: string) => {
@@ -148,12 +163,12 @@ const Index = () => {
   const handleCreateSchedule = (schedule: {
     name: string;
     periods: string[];
-    selectedSubjects: string[];
+    selectedSubjects: { subjectId: string; classId: string }[];
   }) => {
     console.log('Creating schedule:', schedule);
     toast({
       title: "Grade criada",
-      description: `Grade "${schedule.name}" criada com ${schedule.selectedSubjects.length} disciplinas.`,
+      description: `Grade "${schedule.name}" criada com ${schedule.selectedSubjects.length} disciplinas/turmas.`,
     });
   };
 
@@ -179,7 +194,8 @@ const Index = () => {
               <h2 className="text-xl font-semibold">Criar Grade de Horários</h2>
             </div>
             <ScheduleBuilder 
-              subjects={subjects} 
+              subjects={subjects}
+              classes={classes}
               onCreateSchedule={handleCreateSchedule}
             />
           </div>
@@ -197,14 +213,23 @@ const Index = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredSubjects.map(subject => (
-                <SubjectCard
-                  key={subject.id}
-                  subject={subject}
-                  isSelected={currentClassSubjects.includes(subject.id)}
-                  onToggleSelection={handleToggleSubjectInClass}
-                  onEdit={handleEditSubject}
-                  onDelete={handleDeleteSubject}
-                />
+                <div key={subject.id} className="relative">
+                  <SubjectCard
+                    subject={subject}
+                    isSelected={currentClassSubjects.includes(subject.id)}
+                    onToggleSelection={handleToggleSubjectInClass}
+                    onEdit={handleEditSubject}
+                    onDelete={handleDeleteSubject}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={() => handleEditSchedule(subject)}
+                  >
+                    <Edit className="w-3 h-3" />
+                  </Button>
+                </div>
               ))}
             </div>
           </div>
@@ -339,6 +364,18 @@ const Index = () => {
           onSave={editingSubject ? handleUpdateSubject : handleAddSubject}
           subject={editingSubject}
         />
+
+        {editingScheduleSubject && (
+          <ClassScheduleEditor
+            isOpen={isScheduleEditorOpen}
+            onClose={() => {
+              setIsScheduleEditorOpen(false);
+              setEditingScheduleSubject(undefined);
+            }}
+            subject={editingScheduleSubject}
+            onSave={handleUpdateSchedule}
+          />
+        )}
 
         <FilterModal
           isOpen={isFilterModalOpen}
