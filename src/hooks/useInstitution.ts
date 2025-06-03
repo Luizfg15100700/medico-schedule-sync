@@ -108,7 +108,7 @@ export function useInstitution() {
     setLoading(true);
 
     try {
-      // Criar a instituição
+      // Criar a instituição (o trigger automaticamente criará a relação com o usuário)
       const { data: institution, error: institutionError } = await supabase
         .from('institutions')
         .insert(institutionData)
@@ -122,11 +122,10 @@ export function useInstitution() {
 
       console.log('Instituição criada:', institution);
 
-      // Aguardar um momento para garantir que o trigger seja executado
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Recarregar os dados da instituição
-      await fetchUserInstitution();
+      // Recarregar os dados da instituição após um pequeno delay para garantir que o trigger foi executado
+      setTimeout(() => {
+        fetchUserInstitution();
+      }, 1000);
 
       toast({
         title: "Sucesso!",
