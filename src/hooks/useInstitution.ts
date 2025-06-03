@@ -55,7 +55,9 @@ export function useInstitution() {
         .single();
 
       if (institutionUser) {
-        setCurrentInstitution(institutionUser.institutions);
+        // Type cast the institution data to ensure TypeScript compatibility
+        const institution = institutionUser.institutions as Institution;
+        setCurrentInstitution(institution);
         setUserRole(institutionUser.role);
       }
     } catch (error) {
