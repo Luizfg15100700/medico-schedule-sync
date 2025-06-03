@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useAcademicCalendar } from '@/hooks/useAcademicCalendar';
-import { Calendar, Plus, Edit, Trash2, CheckCircle, Clock } from 'lucide-react';
+import { Calendar, Plus, Edit, Trash2, CheckCircle, Clock, Copy } from 'lucide-react';
 import { AcademicPeriod } from '@/types/academic';
 
 export const AcademicCalendar: React.FC = () => {
@@ -17,7 +17,8 @@ export const AcademicCalendar: React.FC = () => {
     setActivePeriod,
     addAcademicPeriod,
     updateAcademicPeriod,
-    deleteAcademicPeriod
+    deleteAcademicPeriod,
+    duplicateAcademicPeriod
   } = useAcademicCalendar();
 
   const [isCreating, setIsCreating] = useState(false);
@@ -47,16 +48,12 @@ export const AcademicCalendar: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    try {
-      if (editingPeriod) {
-        updateAcademicPeriod(editingPeriod.id, formData);
-      } else {
-        addAcademicPeriod(formData);
-      }
-      resetForm();
-    } catch (error) {
-      console.error('Error saving academic period:', error);
+    if (editingPeriod) {
+      updateAcademicPeriod(editingPeriod.id, formData);
+    } else {
+      addAcademicPeriod(formData);
     }
+    resetForm();
   };
 
   const handleEdit = (period: AcademicPeriod) => {
@@ -74,29 +71,25 @@ export const AcademicCalendar: React.FC = () => {
 
   const handleDelete = (periodId: string) => {
     if (confirm('Tem certeza que deseja excluir este período acadêmico?')) {
-      try {
-        deleteAcademicPeriod(periodId);
-      } catch (error) {
-        console.error('Error deleting academic period:', error);
-      }
+      deleteAcademicPeriod(periodId);
     }
   };
 
+  const handleDuplicate = (periodId: string) => {
+    duplicateAcademicPeriod(periodId);
+  };
+
   const toggleActive = (period: AcademicPeriod) => {
-    try {
-      // Desativar outros períodos
-      academicPeriods.forEach(p => {
-        if (p.id !== period.id && p.isActive) {
-          updateAcademicPeriod(p.id, { isActive: false });
-        }
-      });
-      
-      // Ativar o período selecionado
-      updateAcademicPeriod(period.id, { isActive: true });
-      setActivePeriod(period.id);
-    } catch (error) {
-      console.error('Error activating period:', error);
-    }
+    // Desativar outros períodos
+    academicPeriods.forEach(p => {
+      if (p.id !== period.id && p.isActive) {
+        updateAcademicPeriod(p.id, { isActive: false });
+      }
+    });
+    
+    // Ativar o período selecionado
+    updateAcademicPeriod(period.id, { isActive: true });
+    setActivePeriod(period.id);
   };
 
   return (
@@ -114,6 +107,32 @@ export const AcademicCalendar: React.FC = () => {
           <Plus className="w-4 h-4 mr-2" />
           Novo Período
         </Button>
+      </div>
+
+      {/* Estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-blue-600">{academicPeriods.length}</div>
+            <p className="text-sm text-gray-600">Períodos Cadastrados</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-green-600">
+              {academicPeriods.filter(p => p.isActive).length}
+            </div>
+            <p className="text-sm text-gray-600">Período Ativo</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-orange-600">
+              {academicPeriods.filter(p => new Date(p.endDate) > new Date()).length}
+            </div>
+            <p className="text-sm text-gray-600">Períodos Futuros</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Formulário de Criação/Edição */}
@@ -250,8 +269,17 @@ export const AcademicCalendar: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => handleDuplicate(period.id)}
+                    title="Duplicar período"
+                  >
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => handleDelete(period.id)}
                     className="text-red-600 hover:text-red-700"
+                    disabled={period.isActive || academicPeriods.length <= 1}
                   >
                     <Trash2 className="w-3 h-3" />
                   </Button>

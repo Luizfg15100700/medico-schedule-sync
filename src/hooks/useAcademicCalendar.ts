@@ -37,7 +37,6 @@ export const useAcademicCalendar = () => {
     };
 
     setAcademicPeriods(prev => {
-      // Verificar se já existe um período com o mesmo ID
       const exists = prev.some(p => p.id === newPeriod.id);
       if (exists) {
         toast({
@@ -75,27 +74,42 @@ export const useAcademicCalendar = () => {
   }, [toast]);
 
   const deleteAcademicPeriod = useCallback((id: string) => {
+    // Verificar se não é o último período
+    if (academicPeriods.length <= 1) {
+      toast({
+        title: "Erro",
+        description: "Não é possível excluir o último período acadêmico.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Verificar se não é o período ativo
+    if (activePeriod === id) {
+      toast({
+        title: "Erro",
+        description: "Não é possível excluir o período acadêmico ativo. Ative outro período antes de excluir.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setAcademicPeriods(prev => {
       const filtered = prev.filter(period => period.id !== id);
       
-      // Remover templates associados
-      setScheduleTemplates(prevTemplates => 
-        prevTemplates.filter(template => template.academicPeriodId !== id)
-      );
-      
-      // Se o período ativo foi removido, ativar outro
-      if (activePeriod === id && filtered.length > 0) {
-        setActivePeriod(filtered[0].id);
-      }
-      
       toast({
         title: "Período acadêmico removido",
-        description: "O período e suas grades associadas foram removidos.",
+        description: "O período foi removido com sucesso.",
       });
       
       return filtered;
     });
-  }, [toast, activePeriod]);
+
+    // Remover templates associados
+    setScheduleTemplates(prev => 
+      prev.filter(template => template.academicPeriodId !== id)
+    );
+  }, [toast, activePeriod, academicPeriods.length]);
 
   const saveScheduleTemplate = useCallback((template: Omit<ScheduleTemplate, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newTemplate: ScheduleTemplate = {
@@ -117,6 +131,41 @@ export const useAcademicCalendar = () => {
     });
   }, [toast]);
 
+  const duplicateAcademicPeriod = useCallback((periodId: string) => {
+    const period = academicPeriods.find(p => p.id === periodId);
+    if (!period) return;
+
+    const nextYear = period.year + 1;
+    const newPeriod: AcademicPeriod = {
+      ...period,
+      id: `${nextYear}-${period.semester}`,
+      name: `${nextYear}.${period.semester}`,
+      year: nextYear,
+      isActive: false
+    };
+
+    setAcademicPeriods(prev => {
+      const exists = prev.some(p => p.id === newPeriod.id);
+      if (exists) {
+        toast({
+          title: "Erro",
+          description: "Já existe um período com este ano e semestre.",
+          variant: "destructive"
+        });
+        return prev;
+      }
+
+      const updated = [...prev, newPeriod];
+      
+      toast({
+        title: "Período duplicado",
+        description: `Período ${newPeriod.name} foi criado com base em ${period.name}.`,
+      });
+      
+      return updated;
+    });
+  }, [academicPeriods, toast]);
+
   const getActiveAcademicPeriod = useCallback(() => {
     return academicPeriods.find(period => period.id === activePeriod);
   }, [academicPeriods, activePeriod]);
@@ -133,6 +182,7 @@ export const useAcademicCalendar = () => {
     addAcademicPeriod,
     updateAcademicPeriod,
     deleteAcademicPeriod,
+    duplicateAcademicPeriod,
     saveScheduleTemplate,
     getActiveAcademicPeriod,
     getScheduleTemplatesForPeriod
