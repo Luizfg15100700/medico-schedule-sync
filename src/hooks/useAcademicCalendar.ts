@@ -74,27 +74,29 @@ export const useAcademicCalendar = () => {
   }, [toast]);
 
   const deleteAcademicPeriod = useCallback((id: string) => {
-    // Verificar se não é o último período
-    if (academicPeriods.length <= 1) {
-      toast({
-        title: "Erro",
-        description: "Não é possível excluir o último período acadêmico.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Verificar se não é o período ativo
-    if (activePeriod === id) {
-      toast({
-        title: "Erro",
-        description: "Não é possível excluir o período acadêmico ativo. Ative outro período antes de excluir.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setAcademicPeriods(prev => {
+      // Verificar se não é o último período
+      if (prev.length <= 1) {
+        toast({
+          title: "Erro",
+          description: "Não é possível excluir o último período acadêmico.",
+          variant: "destructive"
+        });
+        return prev;
+      }
+
+      // Verificar se não é o período ativo
+      const periodToDelete = prev.find(p => p.id === id);
+      if (periodToDelete?.isActive) {
+        toast({
+          title: "Erro",
+          description: "Não é possível excluir o período acadêmico ativo. Ative outro período antes de excluir.",
+          variant: "destructive"
+        });
+        return prev;
+      }
+
+      // Filtrar o período excluído
       const filtered = prev.filter(period => period.id !== id);
       
       toast({
@@ -109,7 +111,7 @@ export const useAcademicCalendar = () => {
     setScheduleTemplates(prev => 
       prev.filter(template => template.academicPeriodId !== id)
     );
-  }, [toast, activePeriod, academicPeriods.length]);
+  }, [toast]);
 
   const saveScheduleTemplate = useCallback((template: Omit<ScheduleTemplate, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newTemplate: ScheduleTemplate = {
