@@ -1,160 +1,178 @@
 
-import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { 
-  Calendar,
-  Clock,
-  BookOpen,
-  Plus,
-  AlertCircle,
-  BarChart3,
-  Download,
+  BookOpen, 
+  Calendar, 
+  Grid, 
+  BarChart3, 
+  FileText, 
+  AlertTriangle, 
+  User, 
   Settings,
   GraduationCap,
-  Layers,
-  CalendarCheck
+  Clock,
+  Users,
+  Target
 } from 'lucide-react';
 
 interface SidebarProps {
-  onMenuClick?: (menuId: string) => void;
+  onMenuClick: (menuItem: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ onMenuClick }) => {
-  const [activeMenu, setActiveMenu] = useState('schedule');
-
-  const handleMenuClick = (menuId: string) => {
-    setActiveMenu(menuId);
-    onMenuClick?.(menuId);
-  };
-
   const menuItems = [
-    {
-      id: 'schedule',
-      label: 'Grade Horária',
-      icon: Calendar,
-      description: 'Visualizar grade semanal'
+    { 
+      id: 'subjects', 
+      label: 'Disciplinas', 
+      icon: BookOpen, 
+      description: 'Gerenciar disciplinas e conteúdos'
     },
-    {
-      id: 'academic-calendar',
-      label: 'Calendário Acadêmico',
-      icon: CalendarCheck,
-      description: 'Gerenciar períodos letivos',
-      isNew: true
+    { 
+      id: 'schedule', 
+      label: 'Grade Horária', 
+      icon: Grid, 
+      description: 'Visualizar e editar horários'
     },
-    {
-      id: 'advanced-schedule',
-      label: 'Criador Avançado',
-      icon: Layers,
-      description: 'Criar grades elaboradas',
-      isNew: true
+    { 
+      id: 'schedule-builder', 
+      label: 'Construtor de Grade', 
+      icon: Target, 
+      description: 'Ferramentas avançadas para criação de grades'
     },
-    {
-      id: 'subjects',
-      label: 'Disciplinas',
-      icon: BookOpen,
-      description: 'Gerenciar disciplinas'
+    { 
+      id: 'academic-calendar', 
+      label: 'Calendário Acadêmico', 
+      icon: Calendar, 
+      description: 'Períodos letivos e datas importantes'
     },
-    {
-      id: 'new-subject',
-      label: 'Nova Disciplina',
-      icon: Plus,
-      description: 'Adicionar disciplina'
+    { 
+      id: 'workload', 
+      label: 'Carga Horária', 
+      icon: Clock, 
+      description: 'Análise de distribuição de horas'
     },
-    {
-      id: 'workload',
-      label: 'Carga Horária',
-      icon: Clock,
-      description: 'Análise de workload'
+    { 
+      id: 'conflicts', 
+      label: 'Conflitos', 
+      icon: AlertTriangle, 
+      description: 'Identificar e resolver conflitos de horário'
     },
-    {
-      id: 'conflicts',
-      label: 'Conflitos',
-      icon: AlertCircle,
-      description: 'Análise de conflitos'
+    { 
+      id: 'reports', 
+      label: 'Relatórios', 
+      icon: BarChart3, 
+      description: 'Estatísticas e análises detalhadas'
     },
-    {
-      id: 'reports',
-      label: 'Relatórios',
-      icon: BarChart3,
-      description: 'Relatórios e estatísticas'
+    { 
+      id: 'advanced-schedule', 
+      label: 'Grade Avançada', 
+      icon: GraduationCap, 
+      description: 'Configurações avançadas de grade'
+    }
+  ];
+
+  const settingsItems = [
+    { 
+      id: 'profile', 
+      label: 'Perfil', 
+      icon: User, 
+      description: 'Configurações do usuário'
     },
-    {
-      id: 'export',
-      label: 'Exportar',
-      icon: Download,
-      description: 'Exportar grades'
-    },
-    {
-      id: 'settings',
-      label: 'Configurações',
-      icon: Settings,
+    { 
+      id: 'settings', 
+      label: 'Configurações', 
+      icon: Settings, 
       description: 'Configurações do sistema'
     }
   ];
 
   return (
-    <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white border-r border-gray-200 overflow-y-auto">
+    <div className="flex flex-col h-full bg-white border-r border-gray-200">
       <div className="p-4">
         <div className="flex items-center gap-2 mb-6">
-          <div className="medical-gradient p-2 rounded-lg">
-            <GraduationCap className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+            <BookOpen className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-900">Menu Principal</h2>
-            <p className="text-xs text-gray-600">Sistema de Grades</p>
+            <h2 className="font-bold text-gray-900">Sistema Acadêmico</h2>
+            <p className="text-xs text-gray-500">Gestão de Grades</p>
           </div>
         </div>
-
-        <nav className="space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeMenu === item.id;
-            
-            return (
-              <Button
-                key={item.id}
-                variant={isActive ? "default" : "ghost"}
-                className={`w-full justify-start text-left p-3 h-auto ${
-                  isActive 
-                    ? 'medical-gradient text-white' 
-                    : 'hover:bg-gray-100 text-gray-700'
-                }`}
-                onClick={() => handleMenuClick(item.id)}
-              >
-                <div className="flex items-center gap-3 w-full">
-                  <Icon className="w-5 h-5 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium truncate">{item.label}</span>
-                      {item.isNew && (
-                        <Badge className="bg-green-100 text-green-800 text-xs px-1.5 py-0.5">
-                          Novo
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs opacity-80 truncate">{item.description}</p>
-                  </div>
-                </div>
-              </Button>
-            );
-          })}
-        </nav>
-
-        <Card className="mt-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-          <div className="text-center">
-            <GraduationCap className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-            <h3 className="font-medium text-blue-900 mb-1">Sistema Atualizado</h3>
-            <p className="text-xs text-blue-700 mb-3">
-              Agora as disciplinas são automaticamente adicionadas a todas as turmas do período!
-            </p>
-            <Badge className="bg-blue-100 text-blue-800 text-xs">
-              v2.1
-            </Badge>
-          </div>
-        </Card>
       </div>
-    </aside>
+
+      <ScrollArea className="flex-1 px-4">
+        <div className="space-y-2">
+          <div className="pb-2">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Menu Principal
+            </h3>
+            <div className="space-y-1">
+              {menuItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <Button
+                    key={item.id}
+                    variant="ghost"
+                    className="w-full justify-start h-auto p-3 hover:bg-blue-50 hover:text-blue-700 group"
+                    onClick={() => onMenuClick(item.id)}
+                  >
+                    <div className="flex items-start gap-3 w-full">
+                      <IconComponent className="w-5 h-5 mt-0.5 text-gray-500 group-hover:text-blue-600" />
+                      <div className="flex-1 text-left">
+                        <div className="font-medium text-sm">{item.label}</div>
+                        <div className="text-xs text-gray-500 group-hover:text-blue-600 mt-0.5">
+                          {item.description}
+                        </div>
+                      </div>
+                    </div>
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          <Separator className="my-4" />
+
+          <div className="pb-4">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Sistema
+            </h3>
+            <div className="space-y-1">
+              {settingsItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <Button
+                    key={item.id}
+                    variant="ghost"
+                    className="w-full justify-start h-auto p-3 hover:bg-gray-50 hover:text-gray-700 group"
+                    onClick={() => onMenuClick(item.id)}
+                  >
+                    <div className="flex items-start gap-3 w-full">
+                      <IconComponent className="w-5 h-5 mt-0.5 text-gray-500 group-hover:text-gray-600" />
+                      <div className="flex-1 text-left">
+                        <div className="font-medium text-sm">{item.label}</div>
+                        <div className="text-xs text-gray-500 group-hover:text-gray-600 mt-0.5">
+                          {item.description}
+                        </div>
+                      </div>
+                    </div>
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </ScrollArea>
+
+      <div className="p-4 border-t border-gray-200">
+        <div className="text-xs text-gray-500 text-center">
+          <p>Versão 2.0.1</p>
+          <p className="mt-1">© 2024 Sistema Acadêmico</p>
+        </div>
+      </div>
+    </div>
   );
 };

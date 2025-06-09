@@ -9,6 +9,63 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      academic_periods: {
+        Row: {
+          created_at: string
+          end_date: string
+          enrollment_end: string | null
+          enrollment_start: string | null
+          exam_week_end: string | null
+          exam_week_start: string | null
+          id: string
+          institution_id: string | null
+          is_active: boolean
+          name: string
+          semester: string
+          start_date: string
+          status: string
+          type: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          enrollment_end?: string | null
+          enrollment_start?: string | null
+          exam_week_end?: string | null
+          exam_week_start?: string | null
+          id?: string
+          institution_id?: string | null
+          is_active?: boolean
+          name: string
+          semester: string
+          start_date: string
+          status?: string
+          type?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          enrollment_end?: string | null
+          enrollment_start?: string | null
+          exam_week_end?: string | null
+          exam_week_start?: string | null
+          id?: string
+          institution_id?: string | null
+          is_active?: boolean
+          name?: string
+          semester?: string
+          start_date?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       institution_users: {
         Row: {
           created_at: string
@@ -85,6 +142,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      schedule_templates: {
+        Row: {
+          academic_period_id: string | null
+          created_at: string
+          id: string
+          name: string
+          subjects: Json
+          updated_at: string
+        }
+        Insert: {
+          academic_period_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          subjects?: Json
+          updated_at?: string
+        }
+        Update: {
+          academic_period_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          subjects?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_templates_academic_period_id_fkey"
+            columns: ["academic_period_id"]
+            isOneToOne: false
+            referencedRelation: "academic_periods"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -1,49 +1,86 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { AcademicPeriod, ScheduleTemplate, AcademicCalendarValidation } from '@/types/academic';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useAcademicCalendar = () => {
   const { toast } = useToast();
   
-  const [academicPeriods, setAcademicPeriods] = useState<AcademicPeriod[]>([
-    {
-      id: '2024-1',
-      name: '2024.1',
-      semester: '1',
-      year: 2024,
-      startDate: '2024-02-05',
-      endDate: '2024-06-30',
-      isActive: true,
-      status: 'active',
-      type: 'regular',
-      enrollmentStart: '2024-01-15',
-      enrollmentEnd: '2024-02-01',
-      examWeekStart: '2024-06-20',
-      examWeekEnd: '2024-06-30',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    },
-    {
-      id: '2024-2',
-      name: '2024.2',
-      semester: '2',
-      year: 2024,
-      startDate: '2024-08-05',
-      endDate: '2024-12-20',
-      isActive: false,
-      status: 'future',
-      type: 'regular',
-      enrollmentStart: '2024-07-15',
-      enrollmentEnd: '2024-08-01',
-      examWeekStart: '2024-12-10',
-      examWeekEnd: '2024-12-20',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-  ]);
-
+  const [academicPeriods, setAcademicPeriods] = useState<AcademicPeriod[]>([]);
   const [scheduleTemplates, setScheduleTemplates] = useState<ScheduleTemplate[]>([]);
-  const [activePeriod, setActivePeriod] = useState<string>('2024-1');
+  const [activePeriod, setActivePeriod] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Função para carregar períodos acadêmicos do banco
+  const loadAcademicPeriods = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('academic_periods')
+        .select('*')
+        .order('year', { ascending: false })
+        .order('semester', { ascending: false });
+
+      if (error) {
+        console.error('Erro ao carregar períodos acadêmicos:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar períodos acadêmicos.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const periods = data.map(period => ({
+        ...period,
+        startDate: period.start_date,
+        endDate: period.end_date,
+        isActive: period.is_active,
+        enrollmentStart: period.enrollment_start,
+        enrollmentEnd: period.enrollment_end,
+        examWeekStart: period.exam_week_start,
+        examWeekEnd: period.exam_week_end,
+        createdAt: period.created_at,
+        updatedAt: period.updated_at
+      })) as AcademicPeriod[];
+
+      setAcademicPeriods(periods);
+      
+      // Definir período ativo
+      const active = periods.find(p => p.isActive);
+      if (active) {
+        setActivePeriod(active.id);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar períodos acadêmicos:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  // Função para carregar templates de grade
+  const loadScheduleTemplates = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('schedule_templates')
+        .select('*');
+
+      if (error) {
+        console.error('Erro ao carregar templates:', error);
+        return;
+      }
+
+      setScheduleTemplates(data);
+    } catch (error) {
+      console.error('Erro ao carregar templates:', error);
+    }
+  }, []);
+
+  // Carregar dados iniciais
+  useEffect(() => {
+    loadAcademicPeriods();
+    loadScheduleTemplates();
+  }, [loadAcademicPeriods, loadScheduleTemplates]);
 
   // Função para calcular o status automático baseado nas datas
   const calculatePeriodStatus = useCallback((period: AcademicPeriod): AcademicPeriod['status'] => {
@@ -55,16 +92,6 @@ export const useAcademicCalendar = () => {
     if (now > endDate) return 'finished';
     return 'active';
   }, []);
-
-  // Atualizar status automaticamente
-  useEffect(() => {
-    setAcademicPeriods(prev => 
-      prev.map(period => ({
-        ...period,
-        status: calculatePeriodStatus(period)
-      }))
-    );
-  }, [calculatePeriodStatus]);
 
   // Função de validação avançada
   const validatePeriod = useCallback((period: Omit<AcademicPeriod, 'id' | 'status' | 'createdAt' | 'updatedAt'>, excludeId?: string): AcademicCalendarValidation => {
@@ -144,7 +171,7 @@ export const useAcademicCalendar = () => {
     };
   }, [academicPeriods]);
 
-  const addAcademicPeriod = useCallback((period: Omit<AcademicPeriod, 'id' | 'status' | 'createdAt' | 'updatedAt'>) => {
+  const addAcademicPeriod = useCallback(async (period: Omit<AcademicPeriod, 'id' | 'status' | 'createdAt' | 'updatedAt'>) => {
     const validation = validatePeriod(period);
     
     if (!validation.isValid) {
@@ -164,30 +191,53 @@ export const useAcademicCalendar = () => {
       });
     }
 
-    const newPeriod: AcademicPeriod = {
-      ...period,
-      id: `${period.year}-${period.semester}`,
-      status: calculatePeriodStatus(period as AcademicPeriod),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    try {
+      const { data, error } = await supabase
+        .from('academic_periods')
+        .insert({
+          name: period.name,
+          semester: period.semester,
+          year: period.year,
+          start_date: period.startDate,
+          end_date: period.endDate,
+          is_active: period.isActive,
+          status: calculatePeriodStatus(period as AcademicPeriod),
+          type: period.type,
+          enrollment_start: period.enrollmentStart,
+          enrollment_end: period.enrollmentEnd,
+          exam_week_start: period.examWeekStart,
+          exam_week_end: period.examWeekEnd
+        })
+        .select()
+        .single();
 
-    setAcademicPeriods(prev => {
-      const newPeriods = [...prev, newPeriod].sort((a, b) => {
-        if (a.year !== b.year) return a.year - b.year;
-        return parseInt(a.semester) - parseInt(b.semester);
-      });
-      
+      if (error) {
+        console.error('Erro ao criar período:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao criar período acadêmico.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       toast({
         title: "Período acadêmico adicionado",
-        description: `Período ${newPeriod.name} foi criado com sucesso.`,
+        description: `Período ${period.name} foi criado com sucesso.`,
       });
-      
-      return newPeriods;
-    });
-  }, [toast, calculatePeriodStatus, validatePeriod]);
 
-  const updateAcademicPeriod = useCallback((id: string, updates: Partial<AcademicPeriod>) => {
+      await loadAcademicPeriods();
+    } catch (error) {
+      console.error('Erro ao adicionar período:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao criar período.",
+        variant: "destructive"
+      });
+    }
+  }, [toast, calculatePeriodStatus, validatePeriod, loadAcademicPeriods]);
+
+  const updateAcademicPeriod = useCallback(async (id: string, updates: Partial<AcademicPeriod>) => {
     const currentPeriod = academicPeriods.find(p => p.id === id);
     if (!currentPeriod) return;
 
@@ -203,60 +253,92 @@ export const useAcademicCalendar = () => {
       return;
     }
 
-    setAcademicPeriods(prev => {
-      const updated = prev.map(period => 
-        period.id === id ? { 
-          ...period, 
-          ...updates, 
-          status: calculatePeriodStatus({ ...period, ...updates } as AcademicPeriod),
-          updatedAt: new Date().toISOString() 
-        } : period
-      );
-      
+    try {
+      const { error } = await supabase
+        .from('academic_periods')
+        .update({
+          name: updates.name,
+          semester: updates.semester,
+          year: updates.year,
+          start_date: updates.startDate,
+          end_date: updates.endDate,
+          is_active: updates.isActive,
+          status: updates.status || calculatePeriodStatus(updatedPeriod),
+          type: updates.type,
+          enrollment_start: updates.enrollmentStart,
+          enrollment_end: updates.enrollmentEnd,
+          exam_week_start: updates.examWeekStart,
+          exam_week_end: updates.examWeekEnd
+        })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao atualizar período:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao atualizar período acadêmico.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       toast({
         title: "Período acadêmico atualizado",
         description: "As alterações foram salvas com sucesso.",
       });
-      
-      return updated;
-    });
-  }, [toast, academicPeriods, calculatePeriodStatus, validatePeriod]);
 
-  const deleteAcademicPeriod = useCallback((id: string) => {
-    setAcademicPeriods(prev => {
-      if (prev.length <= 1) {
+      await loadAcademicPeriods();
+    } catch (error) {
+      console.error('Erro ao atualizar período:', error);
+    }
+  }, [toast, academicPeriods, calculatePeriodStatus, validatePeriod, loadAcademicPeriods]);
+
+  const deleteAcademicPeriod = useCallback(async (id: string) => {
+    if (academicPeriods.length <= 1) {
+      toast({
+        title: "Erro",
+        description: "Não é possível excluir o último período acadêmico.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const periodToDelete = academicPeriods.find(p => p.id === id);
+    if (periodToDelete?.isActive) {
+      toast({
+        title: "Erro",
+        description: "Não é possível excluir o período acadêmico ativo. Ative outro período antes de excluir.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('academic_periods')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Erro ao excluir período:', error);
         toast({
           title: "Erro",
-          description: "Não é possível excluir o último período acadêmico.",
+          description: "Erro ao excluir período acadêmico.",
           variant: "destructive"
         });
-        return prev;
+        return;
       }
 
-      const periodToDelete = prev.find(p => p.id === id);
-      if (periodToDelete?.isActive) {
-        toast({
-          title: "Erro",
-          description: "Não é possível excluir o período acadêmico ativo. Ative outro período antes de excluir.",
-          variant: "destructive"
-        });
-        return prev;
-      }
-
-      const filtered = prev.filter(period => period.id !== id);
-      
       toast({
         title: "Período acadêmico removido",
         description: "O período foi removido com sucesso.",
       });
-      
-      return filtered;
-    });
 
-    setScheduleTemplates(prev => 
-      prev.filter(template => template.academicPeriodId !== id)
-    );
-  }, [toast]);
+      await loadAcademicPeriods();
+    } catch (error) {
+      console.error('Erro ao excluir período:', error);
+    }
+  }, [toast, academicPeriods, loadAcademicPeriods]);
 
   const duplicateAcademicPeriod = useCallback((periodId: string, targetYear?: number) => {
     const period = academicPeriods.find(p => p.id === periodId);
@@ -280,6 +362,49 @@ export const useAcademicCalendar = () => {
     addAcademicPeriod(newPeriod);
   }, [academicPeriods, addAcademicPeriod]);
 
+  const saveScheduleTemplate = useCallback(async (template: Omit<ScheduleTemplate, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const { error } = await supabase
+        .from('schedule_templates')
+        .insert({
+          name: template.name,
+          academic_period_id: template.academicPeriodId,
+          subjects: template.subjects
+        });
+
+      if (error) {
+        console.error('Erro ao salvar template:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao salvar grade.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Grade salva",
+        description: `Grade "${template.name}" foi salva com sucesso.`,
+      });
+
+      await loadScheduleTemplates();
+    } catch (error) {
+      console.error('Erro ao salvar template:', error);
+    }
+  }, [toast, loadScheduleTemplates]);
+
+  const getActiveAcademicPeriod = useCallback(() => {
+    return academicPeriods.find(period => period.id === activePeriod);
+  }, [academicPeriods, activePeriod]);
+
+  const getScheduleTemplatesForPeriod = useCallback((periodId: string) => {
+    return scheduleTemplates.filter(template => template.academicPeriodId === periodId);
+  }, [scheduleTemplates]);
+
+  const getPeriodsByStatus = useCallback((status: AcademicPeriod['status']) => {
+    return academicPeriods.filter(period => period.status === status);
+  }, [academicPeriods]);
+
   const createTemplate = useCallback((name: string, basePeriodId?: string) => {
     const basePeriod = basePeriodId ? academicPeriods.find(p => p.id === basePeriodId) : academicPeriods[0];
     
@@ -297,42 +422,11 @@ export const useAcademicCalendar = () => {
     return template;
   }, [academicPeriods]);
 
-  const getActiveAcademicPeriod = useCallback(() => {
-    return academicPeriods.find(period => period.id === activePeriod);
-  }, [academicPeriods, activePeriod]);
-
-  const getScheduleTemplatesForPeriod = useCallback((periodId: string) => {
-    return scheduleTemplates.filter(template => template.academicPeriodId === periodId);
-  }, [scheduleTemplates]);
-
-  const getPeriodsByStatus = useCallback((status: AcademicPeriod['status']) => {
-    return academicPeriods.filter(period => period.status === status);
-  }, [academicPeriods]);
-
-  const saveScheduleTemplate = useCallback((template: Omit<ScheduleTemplate, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newTemplate: ScheduleTemplate = {
-      ...template,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    setScheduleTemplates(prev => {
-      const updated = [...prev, newTemplate];
-      
-      toast({
-        title: "Grade salva",
-        description: `Grade "${template.name}" foi salva com sucesso.`,
-      });
-      
-      return updated;
-    });
-  }, [toast]);
-
   return {
     academicPeriods,
     scheduleTemplates,
     activePeriod,
+    isLoading,
     setActivePeriod,
     addAcademicPeriod,
     updateAcademicPeriod,
@@ -344,6 +438,7 @@ export const useAcademicCalendar = () => {
     getPeriodsByStatus,
     validatePeriod,
     createTemplate,
-    calculatePeriodStatus
+    calculatePeriodStatus,
+    loadAcademicPeriods
   };
 };

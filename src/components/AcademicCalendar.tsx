@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,13 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAcademicCalendar } from '@/hooks/useAcademicCalendar';
-import { Calendar, Plus, Edit, Trash2, CheckCircle, Clock, Copy, AlertTriangle, TrendingUp, Users, BookOpen, GraduationCap } from 'lucide-react';
+import { AcademicCalendarSettings } from '@/components/AcademicCalendarSettings';
+import { Calendar, Plus, Edit, Trash2, CheckCircle, Clock, Copy, AlertTriangle, TrendingUp, Users, BookOpen, GraduationCap, Settings } from 'lucide-react';
 import { AcademicPeriod } from '@/types/academic';
 
 export const AcademicCalendar: React.FC = () => {
   const {
     academicPeriods,
     activePeriod,
+    isLoading,
     setActivePeriod,
     addAcademicPeriod,
     updateAcademicPeriod,
@@ -25,6 +26,7 @@ export const AcademicCalendar: React.FC = () => {
   } = useAcademicCalendar();
 
   const [isCreating, setIsCreating] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [editingPeriod, setEditingPeriod] = useState<AcademicPeriod | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -39,6 +41,14 @@ export const AcademicCalendar: React.FC = () => {
     examWeekEnd: '',
     isActive: false
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   const resetForm = () => {
     setFormData({
@@ -140,14 +150,24 @@ export const AcademicCalendar: React.FC = () => {
           <Calendar className="w-6 h-6 text-blue-600" />
           <h2 className="text-2xl font-bold">Calendário Acadêmico</h2>
         </div>
-        <Button 
-          onClick={() => setIsCreating(true)}
-          className="medical-gradient"
-          disabled={isCreating}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Período
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => setIsSettingsOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Settings className="w-4 h-4" />
+            Configurações
+          </Button>
+          <Button 
+            onClick={() => setIsCreating(true)}
+            className="medical-gradient"
+            disabled={isCreating}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Período
+          </Button>
+        </div>
       </div>
 
       {/* Dashboard de Estatísticas */}
@@ -419,6 +439,11 @@ export const AcademicCalendar: React.FC = () => {
           />
         </TabsContent>
       </Tabs>
+
+      {/* Modal de Configurações */}
+      {isSettingsOpen && (
+        <AcademicCalendarSettings onClose={() => setIsSettingsOpen(false)} />
+      )}
     </div>
   );
 };
