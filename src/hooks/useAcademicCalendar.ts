@@ -32,10 +32,15 @@ export const useAcademicCalendar = () => {
       }
 
       const periods = data.map(period => ({
-        ...period,
+        id: period.id,
+        name: period.name,
+        semester: period.semester,
+        year: period.year,
         startDate: period.start_date,
         endDate: period.end_date,
         isActive: period.is_active,
+        status: period.status as AcademicPeriod['status'],
+        type: period.type as AcademicPeriod['type'],
         enrollmentStart: period.enrollment_start,
         enrollmentEnd: period.enrollment_end,
         examWeekStart: period.exam_week_start,
@@ -70,7 +75,16 @@ export const useAcademicCalendar = () => {
         return;
       }
 
-      setScheduleTemplates(data);
+      const templates = data.map(template => ({
+        id: template.id,
+        name: template.name,
+        academicPeriodId: template.academic_period_id || '',
+        subjects: Array.isArray(template.subjects) ? template.subjects : [],
+        createdAt: template.created_at,
+        updatedAt: template.updated_at
+      })) as ScheduleTemplate[];
+
+      setScheduleTemplates(templates);
     } catch (error) {
       console.error('Erro ao carregar templates:', error);
     }
@@ -369,7 +383,7 @@ export const useAcademicCalendar = () => {
         .insert({
           name: template.name,
           academic_period_id: template.academicPeriodId,
-          subjects: template.subjects
+          subjects: template.subjects as any
         });
 
       if (error) {
