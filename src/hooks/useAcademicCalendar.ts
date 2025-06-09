@@ -79,7 +79,7 @@ export const useAcademicCalendar = () => {
         id: template.id,
         name: template.name,
         academicPeriodId: template.academic_period_id || '',
-        subjects: Array.isArray(template.subjects) ? template.subjects : [],
+        subjects: (template.subjects as any) || [],
         createdAt: template.created_at,
         updatedAt: template.updated_at
       })) as ScheduleTemplate[];
