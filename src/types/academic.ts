@@ -7,6 +7,14 @@ export interface AcademicPeriod {
   startDate: string;
   endDate: string;
   isActive: boolean;
+  status: 'future' | 'active' | 'finished';
+  type: 'regular' | 'intensive' | 'special';
+  enrollmentStart?: string;
+  enrollmentEnd?: string;
+  examWeekStart?: string;
+  examWeekEnd?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ScheduleTemplate {
@@ -38,4 +46,10 @@ export interface ConflictAnalysisResult {
     totalHours2: number;
     percentage: number;
   }[];
+}
+
+export interface AcademicCalendarValidation {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
 }
