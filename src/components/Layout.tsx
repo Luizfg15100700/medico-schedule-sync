@@ -12,10 +12,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, onMenuClick }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <Sidebar onMenuClick={onMenuClick} />
-      <main className="ml-64 pt-16 p-6">
-        {children}
-      </main>
+      <div className="flex">
+        <Sidebar onMenuClick={onMenuClick} />
+        <main className="flex-1 pt-16 p-6">
+          {children}
+        </main>
+      </div>
     </div>
   );
 };

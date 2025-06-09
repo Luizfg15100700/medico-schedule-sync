@@ -90,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onMenuClick }) => {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200">
+    <div className="w-64 h-screen bg-white border-r border-gray-200 fixed left-0 top-16 flex flex-col">
       <div className="p-4">
         <div className="flex items-center gap-2 mb-6">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
