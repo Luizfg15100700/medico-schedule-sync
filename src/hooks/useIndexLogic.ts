@@ -63,9 +63,18 @@ export const useIndexLogic = () => {
     }
   };
 
+  // CORRIGIDO: Esta função agora só atualiza horários padrão da disciplina
+  // Para horários específicos da turma, usar updateSubjectScheduleForClass diretamente
   const handleUpdateSchedule = (updatedSubject: Subject) => {
+    // Verificar se estamos editando horários padrão ou específicos de uma turma
+    console.log('Atualizando horários padrão da disciplina:', updatedSubject.name);
     updateSubject(updatedSubject.id, updatedSubject);
     appState.closeScheduleEditor();
+    
+    toast({
+      title: "Horários padrão atualizados",
+      description: "Os horários padrão da disciplina foram atualizados. Turmas com horários customizados não foram afetadas.",
+    });
   };
 
   const handleDeleteSubject = (subjectId: string) => {

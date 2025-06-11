@@ -20,38 +20,46 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
 }) => {
   const getEffectiveSchedule = (subject: Subject): ClassSchedule[] => {
     if (!selectedClass || !getSubjectScheduleForClass) {
-      // Usar horários padrão da disciplina
+      console.log(`Usando horários padrão para disciplina ${subject.name} (sem turma selecionada)`);
       return [...subject.theoreticalClasses, ...subject.practicalClasses];
     }
 
     const classSchedule = getSubjectScheduleForClass(selectedClass.id, subject.id, subject);
-    if (classSchedule && classSchedule.hasCustomSchedule) {
-      // Usar horários customizados da turma
-      return [
-        ...classSchedule.theoreticalClasses.map(tc => ({
-          id: tc.id,
-          subjectId: tc.subjectId,
-          type: tc.type,
-          dayOfWeek: tc.dayOfWeek,
-          startTime: tc.startTime,
-          endTime: tc.endTime,
-          location: tc.location,
-          workload: tc.workload
-        })),
-        ...classSchedule.practicalClasses.map(pc => ({
-          id: pc.id,
-          subjectId: pc.subjectId,
-          type: pc.type,
-          dayOfWeek: pc.dayOfWeek,
-          startTime: pc.startTime,
-          endTime: pc.endTime,
-          location: pc.location,
-          workload: pc.workload
-        }))
-      ] as ClassSchedule[];
+    if (classSchedule) {
+      if (classSchedule.hasCustomSchedule) {
+        console.log(`Usando horários customizados para disciplina ${subject.name} na turma ${selectedClass.name}`);
+        // Usar horários customizados da turma
+        return [
+          ...classSchedule.theoreticalClasses.map(tc => ({
+            id: tc.id,
+            subjectId: tc.subjectId,
+            type: tc.type,
+            dayOfWeek: tc.dayOfWeek,
+            startTime: tc.startTime,
+            endTime: tc.endTime,
+            location: tc.location,
+            workload: tc.workload
+          })),
+          ...classSchedule.practicalClasses.map(pc => ({
+            id: pc.id,
+            subjectId: pc.subjectId,
+            type: pc.type,
+            dayOfWeek: pc.dayOfWeek,
+            startTime: pc.startTime,
+            endTime: pc.endTime,
+            location: pc.location,
+            workload: pc.workload
+          }))
+        ] as ClassSchedule[];
+      } else {
+        console.log(`Usando horários padrão para disciplina ${subject.name} na turma ${selectedClass.name}`);
+        // Usar horários padrão da disciplina
+        return [...subject.theoreticalClasses, ...subject.practicalClasses];
+      }
     }
 
-    // Usar horários padrão da disciplina
+    console.log(`Fallback: usando horários padrão para disciplina ${subject.name}`);
+    // Fallback para horários padrão da disciplina
     return [...subject.theoreticalClasses, ...subject.practicalClasses];
   };
 
@@ -106,11 +114,16 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
                 {classItem.type === 'theoretical' ? 'Teórica' : 'Prática'}
               </Badge>
               {isCustomSchedule && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs bg-green-100 border-green-300 text-green-700">
                   Custom
                 </Badge>
               )}
             </div>
+            {classItem.location && (
+              <div className="text-xs text-gray-500 mt-1">
+                📍 {classItem.location}
+              </div>
+            )}
           </div>
         </div>
       );

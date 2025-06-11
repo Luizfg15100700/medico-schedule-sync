@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +37,9 @@ export const ClassSpecificScheduleEditor: React.FC<ClassSpecificScheduleEditorPr
   });
 
   useEffect(() => {
+    console.log('Inicializando editor para:', subject.name, 'turma:', classGroup.name);
+    console.log('Horário existente:', existingSchedule);
+    
     if (existingSchedule) {
       setScheduleData(existingSchedule);
     } else {
@@ -60,6 +63,7 @@ export const ClassSpecificScheduleEditor: React.FC<ClassSpecificScheduleEditorPr
   }, [subject, classGroup, existingSchedule]);
 
   const resetToDefault = () => {
+    console.log('Resetando para horários padrão da disciplina');
     setScheduleData({
       subjectId: subject.id,
       classId: classGroup.id,
@@ -90,6 +94,8 @@ export const ClassSpecificScheduleEditor: React.FC<ClassSpecificScheduleEditorPr
       workload: 2
     };
 
+    console.log('Adicionando novo horário:', newSchedule);
+
     if (type === 'theoretical') {
       setScheduleData(prev => ({
         ...prev,
@@ -106,6 +112,8 @@ export const ClassSpecificScheduleEditor: React.FC<ClassSpecificScheduleEditorPr
   };
 
   const removeSchedule = (type: 'theoretical' | 'practical', index: number) => {
+    console.log('Removendo horário:', type, index);
+    
     if (type === 'theoretical') {
       setScheduleData(prev => ({
         ...prev,
@@ -122,6 +130,8 @@ export const ClassSpecificScheduleEditor: React.FC<ClassSpecificScheduleEditorPr
   };
 
   const updateSchedule = (type: 'theoretical' | 'practical', index: number, field: keyof ClassScheduleOverride, value: any) => {
+    console.log('Atualizando horário:', type, index, field, value);
+    
     if (type === 'theoretical') {
       setScheduleData(prev => ({
         ...prev,
@@ -142,6 +152,7 @@ export const ClassSpecificScheduleEditor: React.FC<ClassSpecificScheduleEditorPr
   };
 
   const handleSave = () => {
+    console.log('Salvando horários para turma específica:', classGroup.name, scheduleData);
     onSave(classGroup.id, subject.id, scheduleData);
     onClose();
   };
@@ -153,6 +164,9 @@ export const ClassSpecificScheduleEditor: React.FC<ClassSpecificScheduleEditorPr
           <DialogTitle>
             Editar Horários - {subject.name} | {classGroup.name} ({classGroup.period}º Período)
           </DialogTitle>
+          <DialogDescription>
+            Configure horários específicos para esta turma. As alterações não afetarão outras turmas ou os horários padrão da disciplina.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -160,9 +174,10 @@ export const ClassSpecificScheduleEditor: React.FC<ClassSpecificScheduleEditorPr
             <div className="flex items-center space-x-3">
               <Switch
                 checked={scheduleData.hasCustomSchedule}
-                onCheckedChange={(checked) => 
-                  setScheduleData(prev => ({ ...prev, hasCustomSchedule: checked }))
-                }
+                onCheckedChange={(checked) => {
+                  console.log('Alternando modo customizado:', checked);
+                  setScheduleData(prev => ({ ...prev, hasCustomSchedule: checked }));
+                }}
               />
               <div>
                 <p className="font-medium">Usar horário customizado para esta turma</p>
@@ -356,7 +371,7 @@ export const ClassSpecificScheduleEditor: React.FC<ClassSpecificScheduleEditorPr
             </Button>
             <Button onClick={handleSave} className="medical-gradient">
               <Save className="w-4 h-4 mr-2" />
-              Salvar Horários
+              Salvar Horários para {classGroup.name}
             </Button>
           </div>
         </div>
