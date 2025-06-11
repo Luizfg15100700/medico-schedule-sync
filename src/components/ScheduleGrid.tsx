@@ -1,21 +1,66 @@
 
 import React from 'react';
 import { Subject, ClassSchedule, DAYS_OF_WEEK, TIME_SLOTS } from '@/types';
+import { ClassGroup, SubjectScheduleOverride } from '@/types/class';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, MapPin, User } from 'lucide-react';
 
 interface ScheduleGridProps {
   subjects: Subject[];
   conflicts: any[];
+  selectedClass?: ClassGroup;
+  getSubjectScheduleForClass?: (classId: string, subjectId: string, defaultSubject?: Subject) => SubjectScheduleOverride | null;
 }
 
-export const ScheduleGrid: React.FC<ScheduleGridProps> = ({ subjects, conflicts }) => {
+export const ScheduleGrid: React.FC<ScheduleGridProps> = ({ 
+  subjects, 
+  conflicts, 
+  selectedClass,
+  getSubjectScheduleForClass 
+}) => {
+  const getEffectiveSchedule = (subject: Subject): ClassSchedule[] => {
+    if (!selectedClass || !getSubjectScheduleForClass) {
+      // Usar horários padrão da disciplina
+      return [...subject.theoreticalClasses, ...subject.practicalClasses];
+    }
+
+    const classSchedule = getSubjectScheduleForClass(selectedClass.id, subject.id, subject);
+    if (classSchedule && classSchedule.hasCustomSchedule) {
+      // Usar horários customizados da turma
+      return [
+        ...classSchedule.theoreticalClasses.map(tc => ({
+          id: tc.id,
+          subjectId: tc.subjectId,
+          type: tc.type,
+          dayOfWeek: tc.dayOfWeek,
+          startTime: tc.startTime,
+          endTime: tc.endTime,
+          location: tc.location,
+          workload: tc.workload
+        })),
+        ...classSchedule.practicalClasses.map(pc => ({
+          id: pc.id,
+          subjectId: pc.subjectId,
+          type: pc.type,
+          dayOfWeek: pc.dayOfWeek,
+          startTime: pc.startTime,
+          endTime: pc.endTime,
+          location: pc.location,
+          workload: pc.workload
+        }))
+      ] as ClassSchedule[];
+    }
+
+    // Usar horários padrão da disciplina
+    return [...subject.theoreticalClasses, ...subject.practicalClasses];
+  };
+
   const renderTimeSlot = (day: keyof typeof DAYS_OF_WEEK, time: string) => {
     const classes: ClassSchedule[] = [];
     
     subjects.forEach(subject => {
-      [...subject.theoreticalClasses, ...subject.practicalClasses].forEach(classItem => {
+      const effectiveSchedule = getEffectiveSchedule(subject);
+      effectiveSchedule.forEach(classItem => {
         if (classItem.dayOfWeek === day) {
           const startTime = new Date(`2000-01-01 ${classItem.startTime}`);
           const endTime = new Date(`2000-01-01 ${classItem.endTime}`);
@@ -40,8 +85,12 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({ subjects, conflicts 
       const classItem = classes[0];
       const subject = subjects.find(s => s.id === classItem.subjectId);
       
+      // Verificar se é um horário customizado
+      const isCustomSchedule = selectedClass && getSubjectScheduleForClass && 
+        getSubjectScheduleForClass(selectedClass.id, subject?.id || '', subject)?.hasCustomSchedule;
+      
       return (
-        <div className={`schedule-cell occupied ${hasConflict ? 'conflict' : ''}`}>
+        <div className={`schedule-cell occupied ${hasConflict ? 'conflict' : ''} ${isCustomSchedule ? 'custom-schedule' : ''}`}>
           <div className="p-1">
             <div className="text-xs font-medium text-gray-900 truncate">
               {subject?.name}
@@ -49,12 +98,19 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({ subjects, conflicts 
             <div className="text-xs text-gray-600 mt-1">
               {classItem.startTime} - {classItem.endTime}
             </div>
-            <Badge 
-              variant={classItem.type === 'theoretical' ? 'default' : 'secondary'}
-              className="text-xs mt-1"
-            >
-              {classItem.type === 'theoretical' ? 'Teórica' : 'Prática'}
-            </Badge>
+            <div className="flex gap-1 mt-1">
+              <Badge 
+                variant={classItem.type === 'theoretical' ? 'default' : 'secondary'}
+                className="text-xs"
+              >
+                {classItem.type === 'theoretical' ? 'Teórica' : 'Prática'}
+              </Badge>
+              {isCustomSchedule && (
+                <Badge variant="outline" className="text-xs">
+                  Custom
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
       );
@@ -103,6 +159,30 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({ subjects, conflicts 
           ))}
         </div>
       </div>
+
+      <style jsx>{`
+        .schedule-cell {
+          min-height: 40px;
+          border: 1px solid #e5e7eb;
+          border-radius: 4px;
+          background-color: white;
+        }
+        
+        .schedule-cell.occupied {
+          background-color: #dbeafe;
+          border-color: #3b82f6;
+        }
+        
+        .schedule-cell.conflict {
+          background-color: #fecaca;
+          border-color: #ef4444;
+        }
+        
+        .schedule-cell.custom-schedule {
+          background-color: #dcfce7;
+          border-color: #22c55e;
+        }
+      `}</style>
     </Card>
   );
 };

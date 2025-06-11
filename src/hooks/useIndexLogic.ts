@@ -26,6 +26,8 @@ export const useIndexLogic = () => {
     removeSubjectFromClass,
     addSubjectToAllClassesInPeriod,
     removeSubjectFromAllClassesInPeriod,
+    updateSubjectScheduleForClass,
+    getSubjectScheduleForClass,
     copyScheduleBetweenClasses
   } = useClasses();
 
@@ -127,6 +129,8 @@ export const useIndexLogic = () => {
     filteredSubjects,
     selectedSubjectsList,
     copyScheduleBetweenClasses,
+    updateSubjectScheduleForClass,
+    getSubjectScheduleForClass,
     
     // App State
     ...appState,

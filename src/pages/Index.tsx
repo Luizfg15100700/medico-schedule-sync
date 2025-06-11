@@ -21,6 +21,8 @@ const Index = () => {
     filteredSubjects,
     selectedSubjectsList,
     copyScheduleBetweenClasses,
+    updateSubjectScheduleForClass,
+    getSubjectScheduleForClass,
     
     // App State
     isAddModalOpen,
@@ -73,6 +75,8 @@ const Index = () => {
         onDeleteSubject={handleDeleteSubject}
         onEditSchedule={openScheduleEditor}
         onSaveAdvancedSchedule={handleSaveAdvancedSchedule}
+        updateSubjectScheduleForClass={updateSubjectScheduleForClass}
+        getSubjectScheduleForClass={getSubjectScheduleForClass}
       />
 
       <AppModals
