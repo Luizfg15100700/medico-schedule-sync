@@ -1,42 +1,26 @@
 
-import React, { useState } from 'react';
-import { GraduationCap, Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { NotificationModal } from './NotificationModal';
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { GraduationCap, Bell, User } from 'lucide-react';
 
 export const Header: React.FC = () => {
-  const [showNotifications, setShowNotifications] = useState(false);
-
   return (
-    <>
-      <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="medical-gradient p-2 rounded-lg">
-            <GraduationCap className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">MedSchedule</h1>
-            <p className="text-sm text-gray-600">Sistema de Grades Horárias</p>
-          </div>
+    <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-40 h-16">
+      <div className="flex items-center justify-between px-6 h-full">
+        <div className="flex items-center space-x-2">
+          <GraduationCap className="h-8 w-8 text-blue-600" />
+          <h1 className="text-xl font-bold text-gray-900">Sistema de Grades</h1>
         </div>
         
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="relative"
-            onClick={() => setShowNotifications(true)}
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" size="sm">
+            <Bell className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <User className="h-4 w-4" />
           </Button>
         </div>
-      </header>
-
-      <NotificationModal 
-        isOpen={showNotifications}
-        onClose={() => setShowNotifications(false)}
-      />
-    </>
+      </div>
+    </header>
   );
 };
