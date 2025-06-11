@@ -12,6 +12,11 @@ export const useAcademicOperations = (
   const { toast } = useToast();
   const { calculatePeriodStatus, validatePeriod } = useAcademicValidation(academicPeriods);
 
+  // Helper function to convert empty strings to null for date fields
+  const sanitizeDateValue = (dateValue: string | undefined) => {
+    return dateValue && dateValue.trim() !== '' ? dateValue : null;
+  };
+
   const addAcademicPeriod = useCallback(async (period: Omit<AcademicPeriod, 'id' | 'status' | 'createdAt' | 'updatedAt'>) => {
     const validation = validatePeriod(period);
     
@@ -33,6 +38,8 @@ export const useAcademicOperations = (
     }
 
     try {
+      console.log('Creating period with data:', period);
+      
       const { error } = await supabase
         .from('academic_periods')
         .insert({
@@ -44,10 +51,10 @@ export const useAcademicOperations = (
           is_active: period.isActive,
           status: calculatePeriodStatus(period as AcademicPeriod),
           type: period.type,
-          enrollment_start: period.enrollmentStart,
-          enrollment_end: period.enrollmentEnd,
-          exam_week_start: period.examWeekStart,
-          exam_week_end: period.examWeekEnd
+          enrollment_start: sanitizeDateValue(period.enrollmentStart),
+          enrollment_end: sanitizeDateValue(period.enrollmentEnd),
+          exam_week_start: sanitizeDateValue(period.examWeekStart),
+          exam_week_end: sanitizeDateValue(period.examWeekEnd)
         });
 
       if (error) {
@@ -93,6 +100,8 @@ export const useAcademicOperations = (
     }
 
     try {
+      console.log('Updating period with data:', updates);
+      
       const { error } = await supabase
         .from('academic_periods')
         .update({
@@ -104,10 +113,10 @@ export const useAcademicOperations = (
           is_active: updates.isActive,
           status: updates.status || calculatePeriodStatus(updatedPeriod),
           type: updates.type,
-          enrollment_start: updates.enrollmentStart,
-          enrollment_end: updates.enrollmentEnd,
-          exam_week_start: updates.examWeekStart,
-          exam_week_end: updates.examWeekEnd
+          enrollment_start: sanitizeDateValue(updates.enrollmentStart),
+          enrollment_end: sanitizeDateValue(updates.enrollmentEnd),
+          exam_week_start: sanitizeDateValue(updates.examWeekStart),
+          exam_week_end: sanitizeDateValue(updates.examWeekEnd)
         })
         .eq('id', id);
 

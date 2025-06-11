@@ -71,6 +71,24 @@ export const AcademicCalendar: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!formData.name.trim()) {
+      alert('Nome do período é obrigatório');
+      return;
+    }
+    
+    if (!formData.startDate) {
+      alert('Data de início é obrigatória');
+      return;
+    }
+    
+    if (!formData.endDate) {
+      alert('Data de término é obrigatória');
+      return;
+    }
+
+    console.log('Form data being submitted:', formData);
+    
     if (editingPeriod) {
       updateAcademicPeriod(editingPeriod.id, formData);
     } else {
@@ -240,7 +258,7 @@ export const AcademicCalendar: React.FC = () => {
                 <TabsContent value="basic" className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <Label htmlFor="name">Nome do Período</Label>
+                      <Label htmlFor="name">Nome do Período *</Label>
                       <Input
                         id="name"
                         value={formData.name}
@@ -297,7 +315,7 @@ export const AcademicCalendar: React.FC = () => {
                     </div>
 
                     <div>
-                      <Label htmlFor="startDate">Data de Início</Label>
+                      <Label htmlFor="startDate">Data de Início *</Label>
                       <Input
                         id="startDate"
                         type="date"
@@ -308,7 +326,7 @@ export const AcademicCalendar: React.FC = () => {
                     </div>
 
                     <div>
-                      <Label htmlFor="endDate">Data de Término</Label>
+                      <Label htmlFor="endDate">Data de Término *</Label>
                       <Input
                         id="endDate"
                         type="date"
