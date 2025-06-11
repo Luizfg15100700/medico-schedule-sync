@@ -8,7 +8,7 @@ import { ReportsInterface } from '@/components/interfaces/ReportsInterface';
 import { AdvancedScheduleInterface } from '@/components/interfaces/AdvancedScheduleInterface';
 import { AcademicCalendarInterface } from '@/components/interfaces/AcademicCalendarInterface';
 import { Subject } from '@/types';
-import { ClassGroup } from '@/types/class';
+import { ClassGroup, SubjectScheduleOverride } from '@/types/class';
 
 interface ContentRendererProps {
   activeView: string;
@@ -31,6 +31,8 @@ interface ContentRendererProps {
   selectedClass: string;
   onClassChange: (classId: string) => void;
   onCopySchedule: (fromClassId: string, toClassId: string) => void;
+  updateSubjectScheduleForClass: (classId: string, subjectId: string, scheduleOverride: SubjectScheduleOverride) => void;
+  getSubjectScheduleForClass: (classId: string, subjectId: string, defaultSubject?: Subject) => SubjectScheduleOverride | null;
 }
 
 export const ContentRenderer: React.FC<ContentRendererProps> = ({
@@ -52,8 +54,12 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
   onSaveAdvancedSchedule,
   selectedClass,
   onClassChange,
-  onCopySchedule
+  onCopySchedule,
+  updateSubjectScheduleForClass,
+  getSubjectScheduleForClass
 }) => {
+  const currentClass = classes.find(cls => cls.id === selectedClass);
+
   switch (activeView) {
     case 'academic-calendar':
       return <AcademicCalendarInterface />;
@@ -81,6 +87,8 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
           selectedClass={selectedClass}
           onClassChange={onClassChange}
           onCopySchedule={onCopySchedule}
+          updateSubjectScheduleForClass={updateSubjectScheduleForClass}
+          getSubjectScheduleForClass={getSubjectScheduleForClass}
         />
       );
 
@@ -118,6 +126,8 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
             selectedSubjects={currentClassSubjects}
             conflicts={conflicts}
             currentClassName={currentClassName}
+            selectedClass={currentClass}
+            getSubjectScheduleForClass={getSubjectScheduleForClass}
           />
         </div>
       );

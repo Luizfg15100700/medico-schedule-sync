@@ -5,7 +5,7 @@ import { WorkloadSummary } from '@/components/WorkloadSummary';
 import { PageHeader } from '@/components/PageHeader';
 import { ContentRenderer } from '@/components/ContentRenderer';
 import { Subject } from '@/types';
-import { ClassGroup } from '@/types/class';
+import { ClassGroup, SubjectScheduleOverride } from '@/types/class';
 import { ScheduleConflict } from '@/types';
 
 interface MainContentProps {
@@ -29,6 +29,8 @@ interface MainContentProps {
   onDeleteSubject: (subjectId: string) => void;
   onEditSchedule: (subject: Subject) => void;
   onSaveAdvancedSchedule: (schedule: any) => void;
+  updateSubjectScheduleForClass: (classId: string, subjectId: string, scheduleOverride: SubjectScheduleOverride) => void;
+  getSubjectScheduleForClass: (classId: string, subjectId: string, defaultSubject?: Subject) => SubjectScheduleOverride | null;
 }
 
 export const MainContent: React.FC<MainContentProps> = ({
@@ -51,7 +53,9 @@ export const MainContent: React.FC<MainContentProps> = ({
   onEditSubject,
   onDeleteSubject,
   onEditSchedule,
-  onSaveAdvancedSchedule
+  onSaveAdvancedSchedule,
+  updateSubjectScheduleForClass,
+  getSubjectScheduleForClass
 }) => {
   return (
     <div className="space-y-6 animate-fade-in">
@@ -103,6 +107,8 @@ export const MainContent: React.FC<MainContentProps> = ({
         selectedClass={selectedClass}
         onClassChange={onClassChange}
         onCopySchedule={onCopySchedule}
+        updateSubjectScheduleForClass={updateSubjectScheduleForClass}
+        getSubjectScheduleForClass={getSubjectScheduleForClass}
       />
     </div>
   );

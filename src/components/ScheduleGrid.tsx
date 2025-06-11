@@ -160,7 +160,7 @@ export const ScheduleGrid: React.FC<ScheduleGridProps> = ({
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .schedule-cell {
           min-height: 40px;
           border: 1px solid #e5e7eb;
