@@ -66,6 +66,123 @@ export type Database = {
         }
         Relationships: []
       }
+      class_groups: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          period: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name: string
+          period: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          period?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      class_subject_schedules: {
+        Row: {
+          class_id: string
+          created_at: string
+          day_of_week: string
+          end_time: string
+          has_custom_schedule: boolean
+          id: string
+          location: string | null
+          start_time: string
+          subject_id: string
+          type: string
+          workload: number
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          day_of_week: string
+          end_time: string
+          has_custom_schedule?: boolean
+          id?: string
+          location?: string | null
+          start_time: string
+          subject_id: string
+          type: string
+          workload?: number
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          day_of_week?: string
+          end_time?: string
+          has_custom_schedule?: boolean
+          id?: string
+          location?: string | null
+          start_time?: string
+          subject_id?: string
+          type?: string
+          workload?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_subject_schedules_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_subject_schedules_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_subjects: {
+        Row: {
+          class_id: string
+          created_at: string
+          id: string
+          subject_id: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          id?: string
+          subject_id: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          id?: string
+          subject_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_subjects_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "class_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_subjects_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       institution_users: {
         Row: {
           created_at: string
@@ -177,6 +294,83 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      subject_schedules: {
+        Row: {
+          created_at: string
+          day_of_week: string
+          end_time: string
+          id: string
+          location: string | null
+          start_time: string
+          subject_id: string
+          type: string
+          workload: number
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: string
+          end_time: string
+          id?: string
+          location?: string | null
+          start_time: string
+          subject_id: string
+          type: string
+          workload?: number
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: string
+          end_time?: string
+          id?: string
+          location?: string | null
+          start_time?: string
+          subject_id?: string
+          type?: string
+          workload?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subject_schedules_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+          period: string
+          professor: string | null
+          total_workload: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+          period: string
+          professor?: string | null
+          total_workload?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+          period?: string
+          professor?: string | null
+          total_workload?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
