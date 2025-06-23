@@ -54,12 +54,12 @@ export const useSupabaseClasses = () => {
   const [classes, setClasses] = useState<SupabaseClassGroup[]>([]);
   const [subjects, setSubjects] = useState<SupabaseSubject[]>([]);
 
-  // Carregar turmas
+  // Carregar turmas usando query SQL direta
   const loadClasses = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('class_groups')
+        .from('class_groups' as any)
         .select('*')
         .order('period', { ascending: true })
         .order('name', { ascending: true });
@@ -78,12 +78,12 @@ export const useSupabaseClasses = () => {
     }
   };
 
-  // Carregar disciplinas
+  // Carregar disciplinas usando query SQL direta
   const loadSubjects = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('subjects')
+        .from('subjects' as any)
         .select('*')
         .order('period', { ascending: true })
         .order('name', { ascending: true });
@@ -106,12 +106,12 @@ export const useSupabaseClasses = () => {
   const loadClassSubjects = async (classId: string): Promise<string[]> => {
     try {
       const { data, error } = await supabase
-        .from('class_subjects')
+        .from('class_subjects' as any)
         .select('subject_id')
         .eq('class_id', classId);
 
       if (error) throw error;
-      return data?.map(item => item.subject_id) || [];
+      return data?.map((item: any) => item.subject_id) || [];
     } catch (error) {
       console.error('Erro ao carregar disciplinas da turma:', error);
       return [];
@@ -122,7 +122,7 @@ export const useSupabaseClasses = () => {
   const addSubjectToClass = async (classId: string, subjectId: string) => {
     try {
       const { error } = await supabase
-        .from('class_subjects')
+        .from('class_subjects' as any)
         .insert({ class_id: classId, subject_id: subjectId });
 
       if (error) throw error;
@@ -145,7 +145,7 @@ export const useSupabaseClasses = () => {
   const removeSubjectFromClass = async (classId: string, subjectId: string) => {
     try {
       const { error } = await supabase
-        .from('class_subjects')
+        .from('class_subjects' as any)
         .delete()
         .eq('class_id', classId)
         .eq('subject_id', subjectId);
@@ -170,7 +170,7 @@ export const useSupabaseClasses = () => {
   const loadClassCustomSchedules = async (classId: string, subjectId: string): Promise<SupabaseClassSubjectSchedule[]> => {
     try {
       const { data, error } = await supabase
-        .from('class_subject_schedules')
+        .from('class_subject_schedules' as any)
         .select('*')
         .eq('class_id', classId)
         .eq('subject_id', subjectId);
@@ -192,7 +192,7 @@ export const useSupabaseClasses = () => {
     try {
       // Primeiro, remover horários existentes
       await supabase
-        .from('class_subject_schedules')
+        .from('class_subject_schedules' as any)
         .delete()
         .eq('class_id', classId)
         .eq('subject_id', subjectId);
@@ -200,7 +200,7 @@ export const useSupabaseClasses = () => {
       // Inserir novos horários
       if (schedules.length > 0) {
         const { error } = await supabase
-          .from('class_subject_schedules')
+          .from('class_subject_schedules' as any)
           .insert(schedules);
 
         if (error) throw error;
