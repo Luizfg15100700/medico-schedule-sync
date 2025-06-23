@@ -65,7 +65,10 @@ export const useSupabaseClasses = () => {
         .order('name', { ascending: true });
 
       if (error) throw error;
-      setClasses(data || []);
+      
+      // Type cast the data properly
+      const typedData = (data || []) as SupabaseClassGroup[];
+      setClasses(typedData);
     } catch (error) {
       console.error('Erro ao carregar turmas:', error);
       toast({
@@ -73,6 +76,7 @@ export const useSupabaseClasses = () => {
         description: "Não foi possível carregar as turmas.",
         variant: "destructive"
       });
+      setClasses([]);
     } finally {
       setLoading(false);
     }
@@ -89,7 +93,10 @@ export const useSupabaseClasses = () => {
         .order('name', { ascending: true });
 
       if (error) throw error;
-      setSubjects(data || []);
+      
+      // Type cast the data properly
+      const typedData = (data || []) as SupabaseSubject[];
+      setSubjects(typedData);
     } catch (error) {
       console.error('Erro ao carregar disciplinas:', error);
       toast({
@@ -97,6 +104,7 @@ export const useSupabaseClasses = () => {
         description: "Não foi possível carregar as disciplinas.",
         variant: "destructive"
       });
+      setSubjects([]);
     } finally {
       setLoading(false);
     }
@@ -111,7 +119,10 @@ export const useSupabaseClasses = () => {
         .eq('class_id', classId);
 
       if (error) throw error;
-      return data?.map((item: any) => item.subject_id) || [];
+      
+      // Type cast and extract subject_id
+      const typedData = (data || []) as Array<{ subject_id: string }>;
+      return typedData.map(item => item.subject_id);
     } catch (error) {
       console.error('Erro ao carregar disciplinas da turma:', error);
       return [];
@@ -176,7 +187,10 @@ export const useSupabaseClasses = () => {
         .eq('subject_id', subjectId);
 
       if (error) throw error;
-      return data || [];
+      
+      // Type cast the data properly
+      const typedData = (data || []) as SupabaseClassSubjectSchedule[];
+      return typedData;
     } catch (error) {
       console.error('Erro ao carregar horários customizados:', error);
       return [];
