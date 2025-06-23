@@ -1,4 +1,3 @@
-
 import { useSubjects } from '@/hooks/useSubjects';
 import { useClasses } from '@/hooks/useClasses';
 import { useFilters } from '@/hooks/useFilters';
@@ -28,7 +27,9 @@ export const useIndexLogic = () => {
     removeSubjectFromAllClassesInPeriod,
     updateSubjectScheduleForClass,
     getSubjectScheduleForClass,
-    copyScheduleBetweenClasses
+    copyScheduleBetweenClasses,
+    loadSubjectsForClass,
+    loadScheduleForClassSubject
   } = useClasses();
 
   const { saveScheduleTemplate } = useAcademicCalendar();
@@ -63,10 +64,7 @@ export const useIndexLogic = () => {
     }
   };
 
-  // CORRIGIDO: Esta função agora só atualiza horários padrão da disciplina
-  // Para horários específicos da turma, usar updateSubjectScheduleForClass diretamente
   const handleUpdateSchedule = (updatedSubject: Subject) => {
-    // Verificar se estamos editando horários padrão ou específicos de uma turma
     console.log('Atualizando horários padrão da disciplina:', updatedSubject.name);
     updateSubject(updatedSubject.id, updatedSubject);
     appState.closeScheduleEditor();
@@ -116,11 +114,20 @@ export const useIndexLogic = () => {
     });
   };
 
-  const handleToggleSubjectInClass = (subjectId: string) => {
+  const handleToggleSubjectInClass = async (subjectId: string) => {
     if (currentClassSubjects.includes(subjectId)) {
-      removeSubjectFromClass(selectedClass, subjectId);
+      await removeSubjectFromClass(selectedClass, subjectId);
     } else {
-      addSubjectToClass(selectedClass, subjectId);
+      await addSubjectToClass(selectedClass, subjectId);
+    }
+    // Recarregar as disciplinas da turma após a alteração
+    await loadSubjectsForClass(selectedClass);
+  };
+
+  const handleLoadSubjectSchedule = async (subjectId: string) => {
+    const subject = subjects.find(s => s.id === subjectId);
+    if (subject && selectedClass) {
+      await loadScheduleForClassSubject(selectedClass, subjectId, subject);
     }
   };
 
@@ -153,5 +160,6 @@ export const useIndexLogic = () => {
     handleExportCSV,
     handleSaveAdvancedSchedule,
     handleToggleSubjectInClass,
+    handleLoadSubjectSchedule,
   };
 };
