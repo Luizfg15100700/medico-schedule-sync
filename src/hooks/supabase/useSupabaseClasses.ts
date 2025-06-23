@@ -66,8 +66,8 @@ export const useSupabaseClasses = () => {
 
       if (error) throw error;
       
-      // Type cast the data properly
-      const typedData = (data || []) as SupabaseClassGroup[];
+      // Type cast the data properly through unknown first
+      const typedData = (data || []) as unknown as SupabaseClassGroup[];
       setClasses(typedData);
     } catch (error) {
       console.error('Erro ao carregar turmas:', error);
@@ -94,8 +94,8 @@ export const useSupabaseClasses = () => {
 
       if (error) throw error;
       
-      // Type cast the data properly
-      const typedData = (data || []) as SupabaseSubject[];
+      // Type cast the data properly through unknown first
+      const typedData = (data || []) as unknown as SupabaseSubject[];
       setSubjects(typedData);
     } catch (error) {
       console.error('Erro ao carregar disciplinas:', error);
@@ -120,8 +120,8 @@ export const useSupabaseClasses = () => {
 
       if (error) throw error;
       
-      // Type cast and extract subject_id
-      const typedData = (data || []) as Array<{ subject_id: string }>;
+      // Type cast and extract subject_id through unknown first
+      const typedData = (data || []) as unknown as Array<{ subject_id: string }>;
       return typedData.map(item => item.subject_id);
     } catch (error) {
       console.error('Erro ao carregar disciplinas da turma:', error);
@@ -188,8 +188,8 @@ export const useSupabaseClasses = () => {
 
       if (error) throw error;
       
-      // Type cast the data properly
-      const typedData = (data || []) as SupabaseClassSubjectSchedule[];
+      // Type cast the data properly through unknown first
+      const typedData = (data || []) as unknown as SupabaseClassSubjectSchedule[];
       return typedData;
     } catch (error) {
       console.error('Erro ao carregar horários customizados:', error);
