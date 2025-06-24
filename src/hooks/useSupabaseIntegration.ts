@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useSupabaseClasses } from '@/hooks/supabase/useSupabaseClasses';
 import { useSupabaseSubjects } from '@/hooks/supabase/useSupabaseSubjects';
@@ -8,7 +7,7 @@ import { ClassGroup, SubjectScheduleOverride } from '@/types/class';
 
 export const useSupabaseIntegration = () => {
   const { toast } = useToast();
-  const [selectedClass, setSelectedClass] = useState<string>('1-1');
+  const [selectedClass, setSelectedClass] = useState<string>('1-1'); // Mantém a turma padrão válida
   
   // Hooks do Supabase
   const {
