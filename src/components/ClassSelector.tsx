@@ -34,6 +34,13 @@ export const ClassSelector: React.FC<ClassSelectorProps> = ({
     return acc;
   }, {} as Record<string, ClassGroup[]>);
 
+  // Ordenar períodos: 1-8 primeiro, depois especial
+  const sortedPeriods = Object.keys(groupedClasses).sort((a, b) => {
+    if (a === 'especial') return 1;
+    if (b === 'especial') return -1;
+    return parseInt(a) - parseInt(b);
+  });
+
   return (
     <Card>
       <CardHeader>
@@ -50,12 +57,12 @@ export const ClassSelector: React.FC<ClassSelectorProps> = ({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(groupedClasses).map(([period, periodClasses]) => (
+              {sortedPeriods.map(period => (
                 <div key={period}>
                   <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase">
                     {PERIODS[period as keyof typeof PERIODS]}
                   </div>
-                  {periodClasses.map(cls => (
+                  {groupedClasses[period].map(cls => (
                     <SelectItem key={cls.id} value={cls.id}>
                       <div className="flex items-center gap-2">
                         <span>{cls.name}</span>

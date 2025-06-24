@@ -1,4 +1,3 @@
-
 export interface Subject {
   id: string;
   name: string;
@@ -53,13 +52,15 @@ export const PERIODS = {
   '1': '1º Período',
   '2': '2º Período', 
   '3': '3º Período',
-  '4': '4º Período',
+  '4': '4º Período',  
   '5': '5º Período',
   '6': '6º Período',
   '7': '7º Período',
   '8': '8º Período',
   'especial': 'Turma Especial'
 } as const;
+
+export type Period = keyof typeof PERIODS;
 
 export const TIME_SLOTS = [
   '07:00', '07:30', '08:00', '08:30', '09:00', '09:30',
