@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -76,7 +75,7 @@ export const useSupabaseSubjects = () => {
         return {
           id: subject.id,
           name: subject.name,
-          period: subject.period,
+          period: subject.period as Subject['period'], // Type cast to expected period type
           professor: subject.professor || '',
           location: subject.location || '',
           totalWorkload: subject.total_workload,
