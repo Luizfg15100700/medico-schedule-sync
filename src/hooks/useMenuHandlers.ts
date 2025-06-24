@@ -1,5 +1,5 @@
-
 import { useToast } from '@/hooks/use-toast';
+import { useCallback } from 'react';
 
 export const useMenuHandlers = (
   setActiveView: (view: string) => void,
@@ -8,7 +8,7 @@ export const useMenuHandlers = (
 ) => {
   const { toast } = useToast();
 
-  const handleMenuClick = (menuId: string) => {
+  const handleMenuClick = useCallback((menuId: string) => {
     console.log('Menu clicked:', menuId);
     
     switch (menuId) {
@@ -45,10 +45,13 @@ export const useMenuHandlers = (
           description: "Funcionalidade em desenvolvimento",
         });
         break;
+      case 'word-export':
+        setActiveView('word-export');
+        break;
       default:
         break;
     }
-  };
+  }, [setActiveView, openAddModal, handleExportPDF]);
 
   return { handleMenuClick };
 };

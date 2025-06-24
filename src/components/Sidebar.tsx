@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { 
@@ -9,7 +8,8 @@ import {
   AlertTriangle, 
   FileText,
   Settings,
-  BarChart3
+  BarChart3,
+  CalendarPlus
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -23,7 +23,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ onMenuClick }) => {
     { id: 'workload', label: 'Carga Horária', icon: Clock },
     { id: 'conflicts', label: 'Conflitos', icon: AlertTriangle },
     { id: 'reports', label: 'Relatórios', icon: FileText },
-    { id: 'advanced-schedule', label: 'Criador de Grades', icon: BarChart3 },
+    {
+      id: 'advanced-schedule',
+      label: 'Criador Avançado',
+      icon: CalendarPlus,
+      description: 'Criar grades com análise de conflitos'
+    },
+    {
+      id: 'word-export',
+      label: 'Exportar para Word',
+      icon: FileText,
+      description: 'Criar grade formatada em Word'
+    },
     { id: 'academic-calendar', label: 'Calendário Acadêmico', icon: Settings },
   ];
 
