@@ -102,39 +102,41 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
     }
   };
 
-  // Agrupar disciplinas por período
-  const subjectsByPeriod = subjects.reduce((acc, subject) => {
-    if (!acc[subject.period]) {
-      acc[subject.period] = [];
+  // Organizar disciplinas por período e turma
+  const getOrganizedSubjects = () => {
+    if (currentClass) {
+      // Se uma turma específica foi selecionada, mostrar apenas disciplinas dessa turma
+      const classSubjects = subjects.filter(subject => 
+        currentClass.subjects.includes(subject.id)
+      );
+      
+      return classSubjects.reduce((acc, subject) => {
+        const periodKey = `${subject.period}-${currentClass.id}`;
+        if (!acc[periodKey]) {
+          acc[periodKey] = {
+            periodLabel: `${PERIODS[subject.period]} - ${currentClass.name}`,
+            subjects: []
+          };
+        }
+        acc[periodKey].subjects.push(subject);
+        return acc;
+      }, {} as Record<string, { periodLabel: string; subjects: Subject[] }>);
+    } else {
+      // Se nenhuma turma foi selecionada, agrupar por período apenas
+      return subjects.reduce((acc, subject) => {
+        if (!acc[subject.period]) {
+          acc[subject.period] = {
+            periodLabel: PERIODS[subject.period],
+            subjects: []
+          };
+        }
+        acc[subject.period].subjects.push(subject);
+        return acc;
+      }, {} as Record<string, { periodLabel: string; subjects: Subject[] }>);
     }
-    acc[subject.period].push(subject);
-    return acc;
-  }, {} as Record<string, Subject[]>);
+  };
 
-  // Agrupar turmas por período
-  const classesByPeriod = classes.reduce((acc, cls) => {
-    if (!acc[cls.period]) {
-      acc[cls.period] = [];
-    }
-    acc[cls.period].push(cls);
-    return acc;
-  }, {} as Record<string, ClassGroup[]>);
-
-  // Filtrar disciplinas da turma selecionada se houver uma
-  const availableSubjects = currentClass 
-    ? subjects.filter(subject => 
-        currentClass.subjects.includes(subject.id) || 
-        subject.period === currentClass.period
-      )
-    : subjects;
-
-  const filteredSubjectsByPeriod = availableSubjects.reduce((acc, subject) => {
-    if (!acc[subject.period]) {
-      acc[subject.period] = [];
-    }
-    acc[subject.period].push(subject);
-    return acc;
-  }, {} as Record<string, Subject[]>);
+  const organizedSubjects = getOrganizedSubjects();
 
   return (
     <div className="space-y-6">
@@ -167,22 +169,12 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
                   <SelectValue placeholder="Selecione uma turma" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Todas as disciplinas</SelectItem>
-                  {Object.entries(classesByPeriod)
-                    .sort(([a], [b]) => {
-                      if (a === 'especial') return 1;
-                      if (b === 'especial') return -1;
-                      return parseInt(a) - parseInt(b);
-                    })
-                    .map(([period, periodClasses]) => (
-                      <React.Fragment key={period}>
-                        {periodClasses.map(cls => (
-                          <SelectItem key={cls.id} value={cls.id}>
-                            {cls.name} - {PERIODS[period as keyof typeof PERIODS]}
-                          </SelectItem>
-                        ))}
-                      </React.Fragment>
-                    ))}
+                  <SelectItem value="">Todas as disciplinas</SelectItem>
+                  {classes.map(cls => (
+                    <SelectItem key={cls.id} value={cls.id}>
+                      {cls.name} - {PERIODS[cls.period as keyof typeof PERIODS]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -215,61 +207,60 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
               )}
             </h3>
             
-            {Object.entries(PERIODS)
-              .filter(([periodKey]) => filteredSubjectsByPeriod[periodKey]?.length > 0)
+            {Object.entries(organizedSubjects)
               .sort(([a], [b]) => {
-                if (a === 'especial') return 1;
-                if (b === 'especial') return -1;
-                return parseInt(a) - parseInt(b);
-              })
-              .map(([periodKey, periodLabel]) => {
-                const periodSubjects = filteredSubjectsByPeriod[periodKey] || [];
+                // Extrair o período para ordenação
+                const periodA = a.includes('-') ? a.split('-')[0] : a;
+                const periodB = b.includes('-') ? b.split('-')[0] : b;
                 
-                return (
-                  <Card key={periodKey} className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-medium">{periodLabel}</h4>
-                      <Badge variant="outline">{periodSubjects.length} disciplinas</Badge>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {periodSubjects.map(subject => {
-                        const isSelected = selectedSubjects.some(s => s.subjectId === subject.id);
-                        
-                        return (
-                          <div key={subject.id} className="border rounded p-3 hover:bg-gray-50">
-                            <div className="flex items-start space-x-2">
-                              <Checkbox
-                                id={`subject-${subject.id}`}
-                                checked={isSelected}
-                                onCheckedChange={() => handleToggleSubject(subject.id, periodKey)}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <Label 
-                                  htmlFor={`subject-${subject.id}`} 
-                                  className="text-sm font-medium cursor-pointer"
-                                >
-                                  {subject.name}
-                                </Label>
-                                <p className="text-xs text-gray-600 mt-1">
-                                  {subject.professor}
-                                </p>
-                                <div className="flex gap-1 mt-2">
-                                  <Badge variant="outline" className="text-xs">
-                                    {subject.totalWorkload}h
-                                  </Badge>
-                                  <Badge variant="secondary" className="text-xs">
-                                    {(subject.theoreticalClasses?.length || 0) + (subject.practicalClasses?.length || 0)} aulas
-                                  </Badge>
-                                </div>
+                if (periodA === 'especial') return 1;
+                if (periodB === 'especial') return -1;
+                return parseInt(periodA) - parseInt(periodB);
+              })
+              .map(([groupKey, group]) => (
+                <Card key={groupKey} className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium">{group.periodLabel}</h4>
+                    <Badge variant="outline">{group.subjects.length} disciplinas</Badge>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {group.subjects.map(subject => {
+                      const isSelected = selectedSubjects.some(s => s.subjectId === subject.id);
+                      
+                      return (
+                        <div key={subject.id} className="border rounded p-3 hover:bg-gray-50">
+                          <div className="flex items-start space-x-2">
+                            <Checkbox
+                              id={`subject-${subject.id}`}
+                              checked={isSelected}
+                              onCheckedChange={() => handleToggleSubject(subject.id, subject.period)}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <Label 
+                                htmlFor={`subject-${subject.id}`} 
+                                className="text-sm font-medium cursor-pointer"
+                              >
+                                {subject.name}
+                              </Label>
+                              <p className="text-xs text-gray-600 mt-1">
+                                {subject.professor}
+                              </p>
+                              <div className="flex gap-1 mt-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {subject.totalWorkload}h
+                                </Badge>
+                                <Badge variant="secondary" className="text-xs">
+                                  {(subject.theoreticalClasses?.length || 0) + (subject.practicalClasses?.length || 0)} aulas
+                                </Badge>
                               </div>
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </Card>
-                );
-              })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              ))}
           </div>
 
           {/* Disciplinas Selecionadas */}
