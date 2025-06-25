@@ -142,18 +142,15 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
                   <SelectValue placeholder="Selecione uma turma" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma turma específica</SelectItem>
+                  <SelectItem value="none">Nenhuma turma específica</SelectItem>
                   {Object.entries(classesByPeriod).map(([period, periodClasses]) => (
-                    <div key={period}>
-                      <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase">
-                        {PERIODS[period as keyof typeof PERIODS]}
-                      </div>
+                    <React.Fragment key={period}>
                       {periodClasses.map(cls => (
                         <SelectItem key={cls.id} value={cls.id}>
-                          {cls.name}
+                          {cls.name} - {PERIODS[period as keyof typeof PERIODS]}
                         </SelectItem>
                       ))}
-                    </div>
+                    </React.Fragment>
                   ))}
                 </SelectContent>
               </Select>

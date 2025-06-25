@@ -16,6 +16,8 @@ const LUNCH_BREAK_END = '12:40';
 export const exportScheduleToWord = async (options: WordExportOptions) => {
   const { subjects, selectedClass, getSubjectScheduleForClass, scheduleName } = options;
 
+  console.log('Iniciando exportação para Word:', { subjects: subjects.length, selectedClass: selectedClass?.name, scheduleName });
+
   // Função para obter horários efetivos (igual à do ScheduleGrid)
   const getEffectiveSchedule = (subject: Subject): ClassSchedule[] => {
     if (!selectedClass || !getSubjectScheduleForClass) {
@@ -74,6 +76,12 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
         const slotTime = new Date(`2000-01-01 ${timeSlot}`);
         
         if (slotTime >= startTime && slotTime < endTime) {
+          if (!scheduleMap[classItem.dayOfWeek]) {
+            scheduleMap[classItem.dayOfWeek] = {};
+          }
+          if (!scheduleMap[classItem.dayOfWeek][timeSlot]) {
+            scheduleMap[classItem.dayOfWeek][timeSlot] = [];
+          }
           scheduleMap[classItem.dayOfWeek][timeSlot].push(classItem);
         }
       });
@@ -126,7 +134,7 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
             children: [new Paragraph({ text: timeSlot, alignment: AlignmentType.CENTER })],
           }),
           ...Object.keys(DAYS_OF_WEEK).map(day => {
-            const dayClasses = scheduleMap[day][timeSlot];
+            const dayClasses = scheduleMap[day]?.[timeSlot] || [];
             let cellText = '';
             
             if (dayClasses.length > 0) {
@@ -193,18 +201,28 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
     ],
   });
 
-  // Gerar e baixar arquivo
-  const buffer = await Packer.toBuffer(doc);
-  const blob = new Blob([buffer], { 
-    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-  });
-  
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${scheduleName.replace(/\s+/g, '-').toLowerCase() || 'grade-horaria'}.docx`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  try {
+    // Gerar e baixar arquivo
+    console.log('Gerando documento Word...');
+    const buffer = await Packer.toBuffer(doc);
+    console.log('Documento gerado, iniciando download...');
+    
+    const blob = new Blob([buffer], { 
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${scheduleName.replace(/\s+/g, '-').toLowerCase() || 'grade-horaria'}.docx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    console.log('Download concluído com sucesso!');
+  } catch (error) {
+    console.error('Erro ao gerar ou baixar documento:', error);
+    throw error;
+  }
 };
