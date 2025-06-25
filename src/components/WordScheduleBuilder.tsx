@@ -167,7 +167,7 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
                   <SelectValue placeholder="Selecione uma turma" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as disciplinas</SelectItem>
+                  <SelectItem value="none">Todas as disciplinas</SelectItem>
                   {Object.entries(classesByPeriod)
                     .sort(([a], [b]) => {
                       if (a === 'especial') return 1;
@@ -258,7 +258,7 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
                                     {subject.totalWorkload}h
                                   </Badge>
                                   <Badge variant="secondary" className="text-xs">
-                                    {subject.theoreticalClasses.length + subject.practicalClasses.length} aulas
+                                    {(subject.theoreticalClasses?.length || 0) + (subject.practicalClasses?.length || 0)} aulas
                                   </Badge>
                                 </div>
                               </div>

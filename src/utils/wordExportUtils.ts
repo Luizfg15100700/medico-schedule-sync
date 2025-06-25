@@ -31,9 +31,13 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
   const getEffectiveSchedule = (subject: Subject): ClassSchedule[] => {
     console.log(`Obtendo horários para disciplina: ${subject.name}`);
     
+    // Verificar se as propriedades existem e são arrays
+    const theoreticalClasses = Array.isArray(subject.theoreticalClasses) ? subject.theoreticalClasses : [];
+    const practicalClasses = Array.isArray(subject.practicalClasses) ? subject.practicalClasses : [];
+    
     if (!selectedClass || !getSubjectScheduleForClass) {
       console.log('Usando horários padrão da disciplina');
-      return [...subject.theoreticalClasses, ...subject.practicalClasses];
+      return [...theoreticalClasses, ...practicalClasses];
     }
 
     const classSchedule = getSubjectScheduleForClass(selectedClass.id, subject.id, subject);
@@ -41,8 +45,11 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
       console.log(`Horários encontrados para ${subject.name}:`, classSchedule);
       if (classSchedule.hasCustomSchedule) {
         console.log('Usando horários customizados');
+        const customTheoreticalClasses = Array.isArray(classSchedule.theoreticalClasses) ? classSchedule.theoreticalClasses : [];
+        const customPracticalClasses = Array.isArray(classSchedule.practicalClasses) ? classSchedule.practicalClasses : [];
+        
         return [
-          ...classSchedule.theoreticalClasses.map(tc => ({
+          ...customTheoreticalClasses.map(tc => ({
             id: tc.id,
             subjectId: tc.subjectId,
             type: tc.type,
@@ -52,7 +59,7 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
             location: tc.location,
             workload: tc.workload
           })),
-          ...classSchedule.practicalClasses.map(pc => ({
+          ...customPracticalClasses.map(pc => ({
             id: pc.id,
             subjectId: pc.subjectId,
             type: pc.type,
@@ -67,7 +74,7 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
     }
 
     console.log('Usando horários padrão da disciplina');
-    return [...subject.theoreticalClasses, ...subject.practicalClasses];
+    return [...theoreticalClasses, ...practicalClasses];
   };
 
   // Criar mapa de horários para cada dia
@@ -92,7 +99,7 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
     effectiveSchedule.forEach(classItem => {
       console.log(`Processando aula: ${classItem.dayOfWeek} ${classItem.startTime}-${classItem.endTime}`);
       
-      if (!classItem.startTime || !classItem.endTime) {
+      if (!classItem.startTime || !classItem.endTime || !classItem.dayOfWeek) {
         console.warn(`Horário inválido para ${subject.name}:`, classItem);
         return;
       }
