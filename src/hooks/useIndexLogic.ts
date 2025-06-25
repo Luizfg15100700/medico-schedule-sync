@@ -1,4 +1,3 @@
-
 import { useFilters } from '@/hooks/useFilters';
 import { useAcademicCalendar } from '@/hooks/useAcademicCalendar';
 import { useAppState } from '@/hooks/useAppState';
@@ -9,6 +8,8 @@ import { Subject } from '@/types';
 
 export const useIndexLogic = () => {
   const { toast } = useToast();
+  
+  console.log('useIndexLogic: Initializing...');
   
   const {
     subjects,
@@ -30,13 +31,21 @@ export const useIndexLogic = () => {
     loadScheduleForClassSubject
   } = useSupabaseIntegration();
 
+  console.log('useIndexLogic: Data loaded', { 
+    subjects: subjects?.length || 0, 
+    classes: classes?.length || 0,
+    loading 
+  });
+
   const { saveScheduleTemplate } = useAcademicCalendar();
 
-  const currentClass = classes.find(cls => cls.id === selectedClass);
+  const currentClass = classes?.find(cls => cls.id === selectedClass);
   const currentClassSubjects = currentClass ? currentClass.subjects : [];
   
   // Detectar conflitos usando disciplinas da turma atual
   const detectConflictsForClasses = (classSubjects: string[]) => {
+    if (!subjects || subjects.length === 0) return [];
+    
     const conflicts = [];
     const selected = subjects.filter(s => classSubjects.includes(s.id));
     
@@ -58,8 +67,8 @@ export const useIndexLogic = () => {
         
         period1Subjects.forEach(subject1 => {
           period2Subjects.forEach(subject2 => {
-            const allClasses1 = [...subject1.theoreticalClasses, ...subject1.practicalClasses];
-            const allClasses2 = [...subject2.theoreticalClasses, ...subject2.practicalClasses];
+            const allClasses1 = [...(subject1.theoreticalClasses || []), ...(subject1.practicalClasses || [])];
+            const allClasses2 = [...(subject2.theoreticalClasses || []), ...(subject2.practicalClasses || [])];
             
             allClasses1.forEach(class1 => {
               allClasses2.forEach(class2 => {
@@ -95,10 +104,10 @@ export const useIndexLogic = () => {
   };
 
   const conflicts = detectConflictsForClasses(currentClassSubjects);
-  const { filters, setFilters, filteredSubjects } = useFilters(subjects, conflicts);
+  const { filters, setFilters, filteredSubjects } = useFilters(subjects || [], conflicts);
   
   const appState = useAppState();
-  const selectedSubjectsList = filteredSubjects.filter(s => currentClassSubjects.includes(s.id));
+  const selectedSubjectsList = filteredSubjects?.filter(s => currentClassSubjects.includes(s.id)) || [];
 
   const handleAddSubject = async (subject: {
     name: string;
@@ -166,7 +175,7 @@ export const useIndexLogic = () => {
   };
 
   const handleExportPDF = () => {
-    exportToPDF(subjects, currentClassSubjects);
+    exportToPDF(subjects || [], currentClassSubjects);
     toast({
       title: "Exportação realizada",
       description: "Grade exportada como HTML com sucesso!",
@@ -174,7 +183,7 @@ export const useIndexLogic = () => {
   };
 
   const handleExportCSV = () => {
-    exportToCSV(subjects, currentClassSubjects);
+    exportToCSV(subjects || [], currentClassSubjects);
     toast({
       title: "Exportação realizada",
       description: "Grade exportada como CSV com sucesso!",
@@ -214,16 +223,23 @@ export const useIndexLogic = () => {
   };
 
   const handleLoadSubjectSchedule = async (subjectId: string) => {
-    const subject = subjects.find(s => s.id === subjectId);
+    const subject = subjects?.find(s => s.id === subjectId);
     if (subject && selectedClass) {
       await loadScheduleForClassSubject(selectedClass, subjectId, subject);
     }
   };
 
+  console.log('useIndexLogic: Returning data', {
+    subjects: subjects?.length || 0,
+    classes: classes?.length || 0,
+    loading,
+    activeView: appState.activeView
+  });
+
   return {
     // Data
-    subjects,
-    classes,
+    subjects: subjects || [],
+    classes: classes || [],
     selectedClass,
     setSelectedClass,
     currentClass,
@@ -231,7 +247,7 @@ export const useIndexLogic = () => {
     conflicts,
     filters,
     setFilters,
-    filteredSubjects,
+    filteredSubjects: filteredSubjects || [],
     selectedSubjectsList,
     loading,
     copyScheduleBetweenClasses,
