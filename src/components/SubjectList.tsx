@@ -54,10 +54,9 @@ export const SubjectList: React.FC<SubjectListProps> = ({
             key={subject.id}
             subject={subject}
             isSelected={currentClassSubjects.includes(subject.id)}
-            onToggle={() => onToggleSubject(subject.id)}
+            onToggleSelection={() => onToggleSubject(subject.id)}
             onEdit={() => onEdit(subject)}
             onDelete={() => onDelete(subject.id)}
-            onEditSchedule={() => onEditSchedule(subject)}
           />
         ))}
       </div>
