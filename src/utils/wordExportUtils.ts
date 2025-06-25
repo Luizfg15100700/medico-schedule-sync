@@ -16,17 +16,31 @@ const LUNCH_BREAK_END = '12:40';
 export const exportScheduleToWord = async (options: WordExportOptions) => {
   const { subjects, selectedClass, getSubjectScheduleForClass, scheduleName } = options;
 
-  console.log('Iniciando exportação para Word:', { subjects: subjects.length, selectedClass: selectedClass?.name, scheduleName });
+  console.log('Iniciando exportação para Word:', { 
+    subjects: subjects.length, 
+    selectedClass: selectedClass?.name, 
+    scheduleName,
+    subjectNames: subjects.map(s => s.name)
+  });
+
+  if (!subjects || subjects.length === 0) {
+    throw new Error('Nenhuma disciplina foi fornecida para exportação');
+  }
 
   // Função para obter horários efetivos (igual à do ScheduleGrid)
   const getEffectiveSchedule = (subject: Subject): ClassSchedule[] => {
+    console.log(`Obtendo horários para disciplina: ${subject.name}`);
+    
     if (!selectedClass || !getSubjectScheduleForClass) {
+      console.log('Usando horários padrão da disciplina');
       return [...subject.theoreticalClasses, ...subject.practicalClasses];
     }
 
     const classSchedule = getSubjectScheduleForClass(selectedClass.id, subject.id, subject);
     if (classSchedule) {
+      console.log(`Horários encontrados para ${subject.name}:`, classSchedule);
       if (classSchedule.hasCustomSchedule) {
+        console.log('Usando horários customizados');
         return [
           ...classSchedule.theoreticalClasses.map(tc => ({
             id: tc.id,
@@ -52,6 +66,7 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
       }
     }
 
+    console.log('Usando horários padrão da disciplina');
     return [...subject.theoreticalClasses, ...subject.practicalClasses];
   };
 
@@ -65,28 +80,53 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
     });
   });
 
+  console.log('Processando disciplinas para o mapa de horários...');
+
   // Preencher o mapa com as disciplinas
   subjects.forEach(subject => {
+    console.log(`Processando disciplina: ${subject.name}`);
     const effectiveSchedule = getEffectiveSchedule(subject);
+    
+    console.log(`Horários efetivos para ${subject.name}:`, effectiveSchedule);
+    
     effectiveSchedule.forEach(classItem => {
-      const startTime = new Date(`2000-01-01 ${classItem.startTime}`);
-      const endTime = new Date(`2000-01-01 ${classItem.endTime}`);
+      console.log(`Processando aula: ${classItem.dayOfWeek} ${classItem.startTime}-${classItem.endTime}`);
       
-      TIME_SLOTS.forEach(timeSlot => {
-        const slotTime = new Date(`2000-01-01 ${timeSlot}`);
+      if (!classItem.startTime || !classItem.endTime) {
+        console.warn(`Horário inválido para ${subject.name}:`, classItem);
+        return;
+      }
+
+      try {
+        const startTime = new Date(`2000-01-01 ${classItem.startTime}`);
+        const endTime = new Date(`2000-01-01 ${classItem.endTime}`);
         
-        if (slotTime >= startTime && slotTime < endTime) {
-          if (!scheduleMap[classItem.dayOfWeek]) {
-            scheduleMap[classItem.dayOfWeek] = {};
-          }
-          if (!scheduleMap[classItem.dayOfWeek][timeSlot]) {
-            scheduleMap[classItem.dayOfWeek][timeSlot] = [];
-          }
-          scheduleMap[classItem.dayOfWeek][timeSlot].push(classItem);
+        if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+          console.warn(`Formato de horário inválido para ${subject.name}:`, classItem);
+          return;
         }
-      });
+        
+        TIME_SLOTS.forEach(timeSlot => {
+          const slotTime = new Date(`2000-01-01 ${timeSlot}`);
+          
+          if (slotTime >= startTime && slotTime < endTime) {
+            if (!scheduleMap[classItem.dayOfWeek]) {
+              scheduleMap[classItem.dayOfWeek] = {};
+            }
+            if (!scheduleMap[classItem.dayOfWeek][timeSlot]) {
+              scheduleMap[classItem.dayOfWeek][timeSlot] = [];
+            }
+            scheduleMap[classItem.dayOfWeek][timeSlot].push(classItem);
+            console.log(`Adicionado ${subject.name} em ${classItem.dayOfWeek} ${timeSlot}`);
+          }
+        });
+      } catch (error) {
+        console.error(`Erro ao processar horário da disciplina ${subject.name}:`, error);
+      }
     });
   });
+
+  console.log('Mapa de horários criado:', scheduleMap);
 
   // Criar cabeçalho da tabela
   const headerRow = new TableRow({
