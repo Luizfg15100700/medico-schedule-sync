@@ -1,6 +1,6 @@
 
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, AlignmentType, BorderStyle, HeadingLevel } from 'docx';
-import { Subject, ClassSchedule } from '@/types';
+import { Subject, ClassSchedule, DAYS_OF_WEEK } from '@/types';
 import { ClassGroup, SubjectScheduleOverride } from '@/types/class';
 
 interface WordExportOptions {
@@ -10,16 +10,7 @@ interface WordExportOptions {
   scheduleName: string;
 }
 
-// Definir dias da semana e horários
-const DAYS_OF_WEEK = {
-  monday: 'Segunda-feira',
-  tuesday: 'Terça-feira', 
-  wednesday: 'Quarta-feira',
-  thursday: 'Quinta-feira',
-  friday: 'Sexta-feira',
-  saturday: 'Sábado'
-};
-
+// Definir horários
 const TIME_SLOTS = [
   '07:00', '07:50', '08:40', '09:30', '10:20', '11:10',
   '12:40', '13:30', '14:20', '15:10', '16:00', '16:50',
@@ -286,14 +277,10 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
       ],
     });
 
-    // Gerar e baixar arquivo
+    // Gerar e baixar arquivo usando toBlob() ao invés de toBuffer()
     console.log('Gerando documento Word...');
-    const buffer = await Packer.toBuffer(doc);
+    const blob = await Packer.toBlob(doc);
     console.log('Documento gerado, iniciando download...');
-    
-    const blob = new Blob([buffer], { 
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-    });
     
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

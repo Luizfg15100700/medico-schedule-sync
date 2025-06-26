@@ -102,38 +102,28 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
     }
   };
 
-  // Organizar disciplinas por período e turma
+  // Organizar disciplinas por período, considerando turma selecionada
   const getOrganizedSubjects = () => {
+    let filteredSubjects = subjects;
+    
+    // Se uma turma específica foi selecionada, filtrar apenas disciplinas dessa turma
     if (currentClass) {
-      // Se uma turma específica foi selecionada, mostrar apenas disciplinas dessa turma
-      const classSubjects = subjects.filter(subject => 
+      filteredSubjects = subjects.filter(subject => 
         currentClass.subjects.includes(subject.id)
       );
-      
-      return classSubjects.reduce((acc, subject) => {
-        const periodKey = `${subject.period}-${currentClass.id}`;
-        if (!acc[periodKey]) {
-          acc[periodKey] = {
-            periodLabel: `${PERIODS[subject.period]} - ${currentClass.name}`,
-            subjects: []
-          };
-        }
-        acc[periodKey].subjects.push(subject);
-        return acc;
-      }, {} as Record<string, { periodLabel: string; subjects: Subject[] }>);
-    } else {
-      // Se nenhuma turma foi selecionada, agrupar por período apenas
-      return subjects.reduce((acc, subject) => {
-        if (!acc[subject.period]) {
-          acc[subject.period] = {
-            periodLabel: PERIODS[subject.period],
-            subjects: []
-          };
-        }
-        acc[subject.period].subjects.push(subject);
-        return acc;
-      }, {} as Record<string, { periodLabel: string; subjects: Subject[] }>);
     }
+    
+    // Agrupar por período
+    return filteredSubjects.reduce((acc, subject) => {
+      if (!acc[subject.period]) {
+        acc[subject.period] = {
+          periodLabel: PERIODS[subject.period],
+          subjects: []
+        };
+      }
+      acc[subject.period].subjects.push(subject);
+      return acc;
+    }, {} as Record<string, { periodLabel: string; subjects: Subject[] }>);
   };
 
   const organizedSubjects = getOrganizedSubjects();
@@ -163,7 +153,7 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
               />
             </div>
             <div>
-              <Label htmlFor="classSelect">Turma (Opcional)</Label>
+              <Label htmlFor="classSelect">Filtrar por Turma</Label>
               <Select value={selectedClass} onValueChange={setSelectedClass}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione uma turma" />
@@ -209,16 +199,12 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
             
             {Object.entries(organizedSubjects)
               .sort(([a], [b]) => {
-                // Extrair o período para ordenação
-                const periodA = a.includes('-') ? a.split('-')[0] : a;
-                const periodB = b.includes('-') ? b.split('-')[0] : b;
-                
-                if (periodA === 'especial') return 1;
-                if (periodB === 'especial') return -1;
-                return parseInt(periodA) - parseInt(periodB);
+                if (a === 'especial') return 1;
+                if (b === 'especial') return -1;
+                return parseInt(a) - parseInt(b);
               })
-              .map(([groupKey, group]) => (
-                <Card key={groupKey} className="p-4">
+              .map(([period, group]) => (
+                <Card key={period} className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-medium">{group.periodLabel}</h4>
                     <Badge variant="outline">{group.subjects.length} disciplinas</Badge>
