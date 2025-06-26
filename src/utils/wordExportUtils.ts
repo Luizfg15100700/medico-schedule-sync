@@ -1,6 +1,6 @@
 
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, AlignmentType, BorderStyle, HeadingLevel } from 'docx';
-import { Subject, ClassSchedule, DAYS_OF_WEEK, TIME_SLOTS } from '@/types';
+import { Subject, ClassSchedule } from '@/types';
 import { ClassGroup, SubjectScheduleOverride } from '@/types/class';
 
 interface WordExportOptions {
@@ -9,6 +9,22 @@ interface WordExportOptions {
   getSubjectScheduleForClass?: (classId: string, subjectId: string, defaultSubject?: Subject) => SubjectScheduleOverride | null;
   scheduleName: string;
 }
+
+// Definir dias da semana e horários
+const DAYS_OF_WEEK = {
+  monday: 'Segunda-feira',
+  tuesday: 'Terça-feira', 
+  wednesday: 'Quarta-feira',
+  thursday: 'Quinta-feira',
+  friday: 'Sexta-feira',
+  saturday: 'Sábado'
+};
+
+const TIME_SLOTS = [
+  '07:00', '07:50', '08:40', '09:30', '10:20', '11:10',
+  '12:40', '13:30', '14:20', '15:10', '16:00', '16:50',
+  '17:40', '18:30', '19:20', '20:10', '21:00'
+];
 
 const LUNCH_BREAK_START = '11:50';
 const LUNCH_BREAK_END = '12:40';
@@ -54,7 +70,7 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
           ...customTheoreticalClasses.map(tc => ({
             id: tc.id || `${tc.subjectId}-t-${tc.dayOfWeek}-${tc.startTime}`,
             subjectId: tc.subjectId,
-            type: tc.type,
+            type: tc.type || 'theoretical',
             dayOfWeek: tc.dayOfWeek,
             startTime: tc.startTime,
             endTime: tc.endTime,
@@ -64,7 +80,7 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
           ...customPracticalClasses.map(pc => ({
             id: pc.id || `${pc.subjectId}-p-${pc.dayOfWeek}-${pc.startTime}`,
             subjectId: pc.subjectId,
-            type: pc.type,
+            type: pc.type || 'practical',
             dayOfWeek: pc.dayOfWeek,
             startTime: pc.startTime,
             endTime: pc.endTime,
@@ -292,6 +308,6 @@ export const exportScheduleToWord = async (options: WordExportOptions) => {
     
   } catch (error) {
     console.error('Erro ao gerar ou baixar documento:', error);
-    throw new Error(`Erro na geração do documento: ${error.message}`);
+    throw new Error(`Erro na geração do documento: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
   }
 };
