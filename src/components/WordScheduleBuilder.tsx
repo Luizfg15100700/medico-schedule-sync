@@ -32,13 +32,13 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
 }) => {
   const { toast } = useToast();
   const [scheduleName, setScheduleName] = useState('');
-  const [selectedClass, setSelectedClass] = useState<string>('');
+  const [selectedClass, setSelectedClass] = useState<string>('all');
   const [selectedSubjects, setSelectedSubjects] = useState<SelectedSubject[]>([]);
 
   console.log('WordScheduleBuilder - subjects:', subjects?.length || 0);
   console.log('WordScheduleBuilder - classes:', classes?.length || 0);
 
-  const currentClass = classes.find(cls => cls.id === selectedClass);
+  const currentClass = selectedClass !== 'all' ? classes.find(cls => cls.id === selectedClass) : undefined;
 
   const handleToggleSubject = (subjectId: string, period: string) => {
     setSelectedSubjects(prev => {
@@ -169,7 +169,7 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
                   <SelectValue placeholder="Selecione uma turma" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as disciplinas</SelectItem>
+                  <SelectItem value="all">Todas as disciplinas</SelectItem>
                   {classes.map(cls => (
                     <SelectItem key={cls.id} value={cls.id}>
                       {cls.name} - {PERIODS[cls.period as keyof typeof PERIODS]}
