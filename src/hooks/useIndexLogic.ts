@@ -3,7 +3,7 @@ import { useAcademicCalendar } from '@/hooks/useAcademicCalendar';
 import { useAppState } from '@/hooks/useAppState';
 import { useToast } from '@/hooks/use-toast';
 import { useSupabaseIntegration } from '@/hooks/useSupabaseIntegration';
-import { exportToPDF, exportToCSV } from '@/utils/exportUtils';
+import { exportToPDF, exportToExcel } from '@/utils/exportUtils';
 import { Subject } from '@/types';
 
 export const useIndexLogic = () => {
@@ -183,10 +183,10 @@ export const useIndexLogic = () => {
   };
 
   const handleExportCSV = () => {
-    exportToCSV(subjects || [], currentClassSubjects);
+    exportToExcel(subjects || [], currentClassSubjects);
     toast({
       title: "Exportação realizada",
-      description: "Grade exportada como CSV com sucesso!",
+      description: "Grade exportada como Excel com sucesso!",
     });
   };
 
