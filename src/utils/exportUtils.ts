@@ -1,4 +1,3 @@
-
 import { Subject, ClassSchedule } from '@/types';
 
 export const exportToPDF = (subjects: Subject[], selectedSubjects: string[]) => {
@@ -129,6 +128,13 @@ export const exportToExcel = (subjects: Subject[], selectedSubjects: string[]) =
   downloadExcelFile(workbook, `grade-horaria-${new Date().toISOString().split('T')[0]}.xlsx`);
 };
 
+// Interface para definir o tipo da célula Excel
+interface ExcelCell {
+  v: any;
+  t?: 'n' | 's' | 'b' | 'd';
+  z?: string;
+}
+
 // Função para criar worksheet simples
 const createWorksheet = (data: any[][]) => {
   const worksheet: { [key: string]: any } = {};
@@ -141,7 +147,7 @@ const createWorksheet = (data: any[][]) => {
       if (range.e.r < R) range.e.r = R;
       if (range.e.c < C) range.e.c = C;
 
-      const cell = { v: data[R][C] };
+      const cell: ExcelCell = { v: data[R][C] };
       if (cell.v == null) continue;
       
       const cell_ref = encodeCell({ c: C, r: R });
