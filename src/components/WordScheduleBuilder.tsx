@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Subject, PERIODS } from '@/types';
 import { ClassGroup, SubjectScheduleOverride } from '@/types/class';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,16 +37,23 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
 
   console.log('WordScheduleBuilder - subjects:', subjects?.length || 0);
   console.log('WordScheduleBuilder - classes:', classes?.length || 0);
+  console.log('WordScheduleBuilder - selectedSubjects:', selectedSubjects);
 
   const currentClass = selectedClass !== 'all' ? classes.find(cls => cls.id === selectedClass) : undefined;
 
   const handleToggleSubject = (subjectId: string, period: string) => {
+    console.log('Toggling subject:', subjectId, 'period:', period);
+    
     setSelectedSubjects(prev => {
       const exists = prev.some(s => s.subjectId === subjectId);
       if (exists) {
-        return prev.filter(s => s.subjectId !== subjectId);
+        const newSelected = prev.filter(s => s.subjectId !== subjectId);
+        console.log('Removing subject, new selectedSubjects:', newSelected);
+        return newSelected;
       } else {
-        return [...prev, { subjectId, period }];
+        const newSelected = [...prev, { subjectId, period }];
+        console.log('Adding subject, new selectedSubjects:', newSelected);
+        return newSelected;
       }
     });
   };
@@ -104,29 +111,53 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
 
   // Organizar disciplinas por período, considerando turma selecionada
   const getOrganizedSubjects = () => {
+    console.log('Getting organized subjects...');
+    console.log('All subjects:', subjects.map(s => ({ id: s.id, name: s.name, period: s.period })));
+    console.log('Current class:', currentClass);
+    console.log('Current class subjects:', currentClass?.subjects);
+    
     let filteredSubjects = subjects;
     
     // Se uma turma específica foi selecionada, filtrar apenas disciplinas dessa turma
     if (currentClass) {
-      filteredSubjects = subjects.filter(subject => 
-        currentClass.subjects.includes(subject.id)
-      );
+      console.log('Filtering subjects for class:', currentClass.name);
+      filteredSubjects = subjects.filter(subject => {
+        const isInClass = currentClass.subjects.includes(subject.id);
+        console.log(`Subject ${subject.name} (${subject.period}) is in class:`, isInClass);
+        return isInClass;
+      });
     }
     
+    console.log('Filtered subjects:', filteredSubjects.map(s => ({ id: s.id, name: s.name, period: s.period })));
+    
     // Agrupar por período
-    return filteredSubjects.reduce((acc, subject) => {
-      if (!acc[subject.period]) {
-        acc[subject.period] = {
+    const organized = filteredSubjects.reduce((acc, subject) => {
+      // Converter período para string se necessário
+      const periodKey = subject.period.toString();
+      
+      if (!acc[periodKey]) {
+        acc[periodKey] = {
           periodLabel: PERIODS[subject.period],
           subjects: []
         };
       }
-      acc[subject.period].subjects.push(subject);
+      acc[periodKey].subjects.push(subject);
       return acc;
     }, {} as Record<string, { periodLabel: string; subjects: Subject[] }>);
+    
+    console.log('Organized subjects:', organized);
+    return organized;
   };
 
   const organizedSubjects = getOrganizedSubjects();
+
+  // Debug: verificar se o botão deve estar habilitado
+  const isButtonEnabled = scheduleName.trim() !== '' && selectedSubjects.length > 0;
+  console.log('Button enabled check:', { 
+    scheduleName: scheduleName.trim(), 
+    selectedSubjectsCount: selectedSubjects.length, 
+    isEnabled: isButtonEnabled 
+  });
 
   return (
     <div className="space-y-6">
@@ -219,7 +250,7 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
                             <Checkbox
                               id={`subject-${subject.id}`}
                               checked={isSelected}
-                              onCheckedChange={() => handleToggleSubject(subject.id, subject.period)}
+                              onCheckedChange={() => handleToggleSubject(subject.id, subject.period.toString())}
                             />
                             <div className="flex-1 min-w-0">
                               <Label 
@@ -276,7 +307,7 @@ export const WordScheduleBuilder: React.FC<WordScheduleBuilderProps> = ({
             </div>
             <Button 
               onClick={handleExportToWord}
-              disabled={!scheduleName.trim() || selectedSubjects.length === 0}
+              disabled={!isButtonEnabled}
               className="medical-gradient"
             >
               <Download className="w-4 h-4 mr-2" />
